@@ -276,8 +276,6 @@ select{width:100%;padding:8px 10px;border-radius:var(--r-s);border:1.5px solid v
       <div class="row"><span class="l">Học trước: nói nhại mỗi câu</span><div class="seg" id="shadowRep"><button data-v="2">2 lần</button><button data-v="3">3 lần</button></div></div>
       <div class="row"><span class="l">Rảnh tay: câu nhắc là</span><div class="seg" id="hfPrompt"><button data-v="vn">Tiếng Việt</button><button data-v="q">Câu hỏi tiếng Anh</button></div></div>
       <div class="row"><span class="l">Rảnh tay: đọc đáp án</span><div class="seg" id="hfRepeat"><button data-v="1">1 lần</button><button data-v="2">2 lần</button></div></div>
-      <div class="row"><span class="l">Giọng tiếng Anh (Mỹ)</span><div class="vrow"><div class="seg" id="enGender"><button data-v="f">Nữ</button><button data-v="m">Nam</button></div><button class="test" data-test="en">Nghe thử</button></div><small class="vname" id="enName"></small></div>
-      <div class="row"><span class="l">Giọng tiếng Việt</span><div class="vrow"><div class="seg" id="viGender"><button data-v="f">Nữ</button><button data-v="m">Nam</button></div><button class="test" data-test="vi">Nghe thử</button></div><small class="vname" id="viName"></small></div>
       <button class="link" id="resetBtn" style="justify-self:start">Xóa toàn bộ tiến độ</button>
       <button class="link" id="lockBtn" style="justify-self:start">Khóa lại (quên mật khẩu trên máy này)</button>
     </div>
@@ -343,7 +341,7 @@ select{width:100%;padding:8px 10px;border-radius:var(--r-s);border:1.5px solid v
   <h1>Chuẩn bị trước khi học</h1>
   <p class="sub">Làm 2 bước này một lần, để trong bài học máy đọc được và nghe được bạn.</p>
   <div class="prepcard">
-    <div class="pstep"><span class="pnum">1</span><div><b>Kiểm tra loa</b><p class="sub">Bấm nút, bạn sẽ nghe một câu tiếng Anh và một câu tiếng Việt.</p>
+    <div class="pstep"><span class="pnum">1</span><div><b>Kiểm tra loa</b><p class="sub">Bấm nút, bạn sẽ nghe giọng nữ và giọng nam tiếng Anh, rồi một câu tiếng Việt. Lần đầu có thể mất vài giây để tải giọng đọc.</p>
       <button class="btn" id="prepSound">🔊 Nghe thử</button><p class="pst" id="prepSoundSt"></p></div></div>
     <div class="pstep"><span class="pnum">2</span><div><b>Cho phép micro</b><p class="sub">Trình duyệt sẽ hỏi quyền dùng micro. Hãy chọn <b>Cho phép</b>.</p>
       <button class="btn" id="prepMic">🎤 Cho phép micro</button><p class="pst" id="prepMicSt"></p></div></div>
@@ -522,12 +520,14 @@ function loadVoices(){
   else n.classList.add("hidden");
   showVoiceNames();
 }
+const CUR_G={en:"f", vi:"f"};
+function rollVoices(){ CUR_G.en = Math.random()<0.5?"f":"m"; CUR_G.vi = Math.random()<0.5?"f":"m"; }
 function voiceFor(lang){
-  const g = S.settings[lang==="en"?"enGender":"viGender"]||"f", k=lang+g;
+  const g = CUR_G[lang]||"f", k=lang+g;
   if(!VCACHE[k]) VCACHE[k]=bestVoice(lang,g);
   return VCACHE[k];
 }
-function showVoiceNames(){
+function showVoiceNames(){ return;
   [["en","enName","enGender"],["vi","viName","viGender"]].forEach(([lang,id,key])=>{
     const el=$(id); if(!el) return;
     const r=voiceFor(lang), g=S.settings[key]==="m"?"nam":"nữ";
@@ -542,6 +542,7 @@ function showVoiceNames(){
 if(synth){ loadVoices(); synth.onvoiceschanged = loadVoices; setTimeout(loadVoices,800); setTimeout(loadVoices,2500); }
 function pickVoice(lang){ return voiceFor(lang).v; }
 function speakText(t){ return t.replace(/→/g," to ").replace(/[–—]/g,", ").replace(/[()]/g," , ").replace(/\s+/g," ").trim(); }
+let CUR_UTT=null;
 function speak(text, lang, rateMul=1, absRate){
   return new Promise(res=>{
     const rate = absRate || (S.settings.rate||1)*rateMul;
@@ -555,24 +556,40 @@ function speak(text, lang, rateMul=1, absRate){
       tries++;
       const v = useVoice ? pickVoice(lang) : null;
       const u = new SpeechSynthesisUtterance(speakText(text));
+      CUR_UTT = u;                       // giữ tham chiếu, tránh lỗi Chrome tự hủy câu đọc
       u.lang = v ? v.lang : (lang==="en" ? "en-US" : "vi-VN");
       if(v) u.voice = v;
       u.rate = rate;
       let started=false;
       u.onstart=()=>{ started=true; clearTimeout(watch); };
       u.onend=fin;
-      u.onerror=e=>{ if(!started && tries<2 && e.error!=="interrupted" && e.error!=="canceled"){ attempt(false); } else if(e.error!=="interrupted") fin(); else fin(); };
+      u.onerror=e=>{
+        if(e.error==="interrupted"||e.error==="canceled"){ fin(); return; }
+        if(!started && tries<2) setTimeout(()=>attempt(false),150); else fin();
+      };
       try{ synth.resume(); }catch(_){}
       synth.speak(u);
       clearTimeout(watch);
-      // Nếu sau 3 giây vẫn chưa phát được: thử lại bằng giọng mặc định của trình duyệt
-      watch=setTimeout(()=>{ if(!started && !done){ if(tries<2){ try{ synth.cancel(); }catch(_){} setTimeout(()=>attempt(false),150); } else fin(); } }, 3000);
+      // Giọng AI (Edge, Android) lần đầu cần vài giây để tải: KHÔNG hủy khi máy vẫn đang xử lý.
+      // Chỉ thử lại khi câu đọc bị bỏ rơi hoàn toàn (không đang đọc, không chờ).
+      const check=()=>{ if(started||done) return;
+        if(synth.speaking || synth.pending){ watch=setTimeout(check,1000); return; }
+        if(tries<2) attempt(false); else fin(); };
+      watch=setTimeout(check, 2500);
     }
-    hard=setTimeout(fin, est*2.5+7000);
-    if(synth.speaking || synth.pending){ try{ synth.cancel(); }catch(_){} setTimeout(()=>attempt(true),150); }
+    hard=setTimeout(fin, est*3+15000);
+    if(synth.speaking || synth.pending){ try{ synth.cancel(); }catch(_){} setTimeout(()=>attempt(true),200); }
     else attempt(true);
   });
 }
+// Làm "ấm" giọng đọc ngay khi người dùng chạm vào trang lần đầu, để câu đầu tiên không bị chậm
+let WARMED=false;
+function warmTTS(){
+  if(WARMED || !synth) return; WARMED=true;
+  try{ const u=new SpeechSynthesisUtterance(" "); u.volume=0; const v=pickVoice("en"); if(v){ u.voice=v; u.lang=v.lang; } synth.speak(u); }catch(_){}
+}
+document.addEventListener("pointerdown", warmTTS, {once:true, capture:true});
+document.addEventListener("keydown", warmTTS, {once:true, capture:true});
 function stopSpeak(){ try{ synth && synth.cancel(); }catch(e){} }
 
 /* ---------- speech recognition ---------- */
@@ -675,7 +692,7 @@ function renderHome(){
   $("wait").value=st.wait; $("waitVal").textContent=st.wait+" giây";
   $("rate").value=st.rate; $("rateVal").textContent=Math.round(st.rate*100)+"%";
   segSet("size",String(st.size)); segSet("hfPrompt",st.hfPrompt); segSet("hfRepeat",String(st.hfRepeat)); segSet("shadowRep",String(st.shadowRep));
-  $("shuffle").checked=st.shuffle; $("hard").checked=st.hard; $("mic").checked=st.mic && MIC_OK; segSet("enGender",st.enGender); segSet("viGender",st.viGender); showVoiceNames();
+  $("shuffle").checked=st.shuffle; $("hard").checked=st.hard; $("mic").checked=st.mic && MIC_OK; 
   const nSel = selSet().size, n = buildQueue(true).length;
   $("startBtn").disabled = n===0;
   $("startBtn").textContent = nSel===0 ? "Chọn ít nhất một nhóm câu" : n===0 ? "Chưa có câu hay sai trong phần đã chọn" :
@@ -698,8 +715,6 @@ $("wait").oninput=e=>upd("wait",+e.target.value);
 $("rate").oninput=e=>upd("rate",+e.target.value);
 ["size","hfPrompt","hfRepeat"].forEach(id=>$(id).addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; upd(id, id==="size"? +b.dataset.v : b.dataset.v); }));
 ["shuffle","hard","mic"].forEach(id=>$(id).onchange=e=>upd(id,e.target.checked));
-["enGender","viGender"].forEach(id=>$(id).addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; upd(id,b.dataset.v); VCACHE={}; showVoiceNames(); id==="enGender" ? speak("I'm a student. Nice to meet you.","en") : speak("Xin chào, tôi là giáo viên của bạn.","vi"); }));
-document.querySelectorAll("[data-test]").forEach(b=>b.onclick=()=>{ b.dataset.test==="vi" ? speak("Xin chào, tôi là giáo viên của bạn.","vi") : speak("I'm a student. Nice to meet you.","en"); });
 $("lockBtn").onclick=()=>{ try{ localStorage.removeItem(KEYK); }catch(e){} location.reload(); };
 $("resetBtn").onclick=()=>{ if(confirm("Xóa toàn bộ tiến độ học trên máy này? Không hoàn tác được.")){ S.prog={}; save(); pushRemote(); renderHome(); } };
 
@@ -743,7 +758,10 @@ function openPrep(){
 }
 $("prepSound").onclick=async ()=>{
   $("prepSoundSt").className="pst"; $("prepSoundSt").textContent="Đang phát…";
+  CUR_G.en="f"; CUR_G.vi="f";
   await speak("Hello! Let's practice English together.","en",1,1.0);
+  CUR_G.en="m";
+  await speak("I'm your teacher today.","en",1,1.0);
   await speak("Xin chào, chúng ta cùng luyện tiếng Anh nhé.","vi");
   $("prepSoundSt").textContent="Nếu không nghe thấy: tăng âm lượng, tắt chế độ im lặng (iPhone: gạt nút bên hông), hoặc thử cắm tai nghe rồi bấm lại.";
 };
@@ -814,7 +832,7 @@ async function nextCard(){
   if(run.i>=run.queue.length){ finish(); return; }
   const token = run.token, d=cur(), mode=run.mode;
   const stale = ()=> !run || run.token!==token || run.revealed || run.queue[run.i]!==d.id;
-  run.revealed=false; run.transcript=null; run.verdict=null;
+  run.revealed=false; run.transcript=null; run.verdict=null; rollVoices();
   if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
   setProgress();
   $("post").classList.add("hidden"); $("preActs").classList.remove("hidden"); $("replayQ").disabled=false;
@@ -938,7 +956,7 @@ async function handsFree(token){
   paused=false; $("hfPause").textContent="Tạm dừng";
   const useQ = S.settings.hfPrompt==="q"; const mode = useQ?"3":"1";
   while(run && run.token===token && run.i<run.queue.length){
-    skip=false; const d=cur(); setProgress();
+    skip=false; const d=cur(); setProgress(); rollVoices();
     $("post").classList.add("hidden"); $("live").textContent=""; resetRing(); setPhase("");
     renderPrompt(d, mode, false);
     await waitUnpaused(token); if((!run||run.token!==token)) return;
@@ -1039,7 +1057,7 @@ function lSleep(ms,tk){ return new Promise(res=>{ let left=ms; const step=100; (
 async function lWait(tk){ while(!lStale(tk) && L.paused && !L.jump) await new Promise(r=>setTimeout(r,150)); }
 async function learnLoop(tk){
   while(!lStale(tk) && L.i<L.ids.length){
-    const d=BYID[L.ids[L.i]]; L.jump=false; renderLearnCard(d);
+    const d=BYID[L.ids[L.i]]; L.jump=false; rollVoices(); renderLearnCard(d);
     const reps=+S.settings.shadowRep||3; let r=0;
     while(r<reps){
       lDots(reps,r,r);
