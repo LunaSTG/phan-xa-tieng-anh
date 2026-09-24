@@ -191,7 +191,9 @@ select{width:100%;padding:8px 10px;border-radius:var(--r-s);border:1.5px solid v
 .grades kbd{font-family:inherit;font-size:.7rem;font-weight:500;opacity:.6;margin-left:6px;border:1px solid currentColor;border-radius:4px;padding:0 4px}
 @media (hover:none){kbd{display:none!important}}
 
-.vrow{display:flex;gap:8px}.vrow select{flex:1;min-width:0}
+.vrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.vrow .seg{flex:1}
+.vname{color:var(--muted);font-size:.82rem}.vrow select{flex:1;min-width:0}
 .test{border:1.5px solid var(--line);background:var(--bg);border-radius:var(--r-s);padding:8px 12px;font-size:.9rem;white-space:nowrap}
 .live{flex:1}
 .micbtn{margin-left:auto;width:64px;height:64px;border-radius:50%;border:0;background:var(--chalk);color:#1B2A26;display:grid;place-items:center;flex:none;transition:transform .1s}
@@ -257,9 +259,8 @@ select{width:100%;padding:8px 10px;border-radius:var(--r-s);border:1.5px solid v
       <div class="row"><span class="l">Học trước: nói nhại mỗi câu</span><div class="seg" id="shadowRep"><button data-v="2">2 lần</button><button data-v="3">3 lần</button></div></div>
       <div class="row"><span class="l">Rảnh tay: câu nhắc là</span><div class="seg" id="hfPrompt"><button data-v="vn">Tiếng Việt</button><button data-v="q">Câu hỏi tiếng Anh</button></div></div>
       <div class="row"><span class="l">Rảnh tay: đọc đáp án</span><div class="seg" id="hfRepeat"><button data-v="1">1 lần</button><button data-v="2">2 lần</button></div></div>
-      <div class="row"><span class="l">Giọng tiếng Anh</span><div class="seg" id="accent"><button data-v="us">Anh-Mỹ</button><button data-v="gb">Anh-Anh</button></div></div>
-      <div class="row"><label class="l" for="enVoice">Giọng đọc tiếng Anh</label><div class="vrow"><select id="enVoice"></select><button class="test" data-test="en">Nghe thử</button></div></div>
-      <div class="row"><label class="l" for="viVoice">Giọng đọc tiếng Việt</label><div class="vrow"><select id="viVoice"></select><button class="test" data-test="vi">Nghe thử</button></div></div>
+      <div class="row"><span class="l">Giọng tiếng Anh (Mỹ)</span><div class="vrow"><div class="seg" id="enGender"><button data-v="f">Nữ</button><button data-v="m">Nam</button></div><button class="test" data-test="en">Nghe thử</button></div><small class="vname" id="enName"></small></div>
+      <div class="row"><span class="l">Giọng tiếng Việt</span><div class="vrow"><div class="seg" id="viGender"><button data-v="f">Nữ</button><button data-v="m">Nam</button></div><button class="test" data-test="vi">Nghe thử</button></div><small class="vname" id="viName"></small></div>
       <button class="link" id="resetBtn" style="justify-self:start">Xóa toàn bộ tiến độ</button>
       <button class="link" id="lockBtn" style="justify-self:start">Khóa lại (quên mật khẩu trên máy này)</button>
     </div>
@@ -384,7 +385,7 @@ function initData(les){
 }
 
 /* ---------- state & storage ---------- */
-const DEFAULTS = {units:[1],picks:null,shadowRep:"3",learnView:"card",mode:"1",wait:8,rate:0.9,size:20,shuffle:true,hard:false,mic:true,accent:"us",hfPrompt:"vn",hfRepeat:"2",viVoice:"",enVoice:"",t:0};
+const DEFAULTS = {units:[1],picks:null,shadowRep:"3",learnView:"card",mode:"1",wait:8,rate:0.9,size:20,shuffle:true,hard:false,mic:true,accent:"us",enGender:"f",viGender:"f",hfPrompt:"vn",hfRepeat:"2",viVoice:"",enVoice:"",t:0};
 let S = {settings:{...DEFAULTS}, prog:{}};
 try{ const raw = localStorage.getItem(LSK); if(raw){ const o = JSON.parse(raw); S.settings = {...DEFAULTS,...(o.settings||{})}; S.prog = o.prog||{}; } }catch(e){}
 if(!S.settings.m8){ if(S.settings.wait===5) S.settings.wait=8; S.settings.m8=true; }
@@ -447,36 +448,59 @@ $("encFile").onchange=async e=>{ const f=e.target.files[0]; if(!f) return; try{ 
 /* ---------- speech synthesis ---------- */
 const synth = window.speechSynthesis || null;
 let voices=[];
+// Danh sách ưu tiên theo từng loại máy: Edge (Natural), Chrome, iPhone/Mac, Android, Windows
+const NOVELTY=/Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Good News|Jester|Organ|Superstar|Trinoids|Whisper|Wobble|Zarvox|Junior|Kathy|Ralph|Fred|Grandma|Grandpa|Eddy|Flo|Reed|Rocko|Sandy|Shelley|Deranged|Hysterical|Pipe/i;
+const VOICE_PREF={
+  "en-f":[/Ava.*Natural|Emma.*Natural/i,/Aria.*Natural|Jenny.*Natural|Emma.*Natural|Michelle.*Natural|Ana.*Natural/i,/Google US English/i,/Ava|Samantha|Allison|Susan|Zoe|Nicky|Joelle|Noelle/i,/en-us-x-(sfg|tpf|tpc|iob|iog)/i,/Zira|Aria|Jenny/i],
+  "en-m":[/Andrew.*Natural|Brian.*Natural/i,/Guy.*Natural|Christopher.*Natural|Brian.*Natural|Eric.*Natural|Roger.*Natural|Steffan.*Natural/i,/Evan|Tom|Aaron|Nathan|Alex\b/i,/en-us-x-(iol|iom|tpd)/i,/David|Mark|Guy|Andrew/i],
+  "vi-f":[/HoaiMy/i,/Google.*(Vi|Tiếng)/i,/Linh/i,/vi-vn-x-(gft|vic|vie)/i],
+  "vi-m":[/NamMinh/i,/Microsoft An\b|\bAn\b/i,/vi-vn-x-(vid|vif)/i]
+};
+function vbonus(v){ return (/Natural/i.test(v.name)?30:0)+(/Premium/i.test(v.name)?25:0)+(/Enhanced/i.test(v.name)?20:0)+(/network/i.test(v.name+v.voiceURI)?5:0)+(v.localService===false?2:0); }
+function bestVoice(lang, gender){
+  const pool = voices.filter(v=> (lang==="en" ? /^en[-_]US/i.test(v.lang) : /^vi/i.test(v.lang)) && !NOVELTY.test(v.name));
+  if(!pool.length) return {v:null, fb:false};
+  const score=(v,list)=>{ for(let i=0;i<list.length;i++) if(list[i].test(v.name) || list[i].test(v.voiceURI||"")) return 100-i*10+vbonus(v); return -1; };
+  const want=VOICE_PREF[lang+"-"+gender], other=VOICE_PREF[lang+"-"+(gender==="f"?"m":"f")];
+  const ranked = pool.map(v=>({v,s:score(v,want)})).filter(x=>x.s>=0).sort((a,b)=>b.s-a.s);
+  if(ranked.length) return {v:ranked[0].v, fb:false};
+  // không có giọng đúng giới tính: ưu tiên giọng chưa rõ giới tính, sau đó giọng tốt nhất còn lại
+  const neutral = pool.filter(v=>score(v,other)<0).sort((a,b)=>vbonus(b)-vbonus(a));
+  if(neutral.length) return {v:neutral[0], fb:"unknown"};
+  const alt = pool.map(v=>({v,s:score(v,other)})).sort((a,b)=>b.s-a.s);
+  return {v:alt[0].v, fb:true};
+}
+let VCACHE={};
+const IS_ANDROID=/Android/i.test(navigator.userAgent), IS_IOS=/iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 function loadVoices(){
   if(!synth) return;
-  voices = synth.getVoices();
-  fillVoiceSelect("viVoice", v=>/^vi/i.test(v.lang));
-  fillVoiceSelect("enVoice", v=>/^en/i.test(v.lang));
-  const hasVi = voices.some(v=>v.lang.toLowerCase().startsWith("vi"));
+  voices = synth.getVoices(); VCACHE={};
+  const hasVi = voices.some(v=>/^vi/i.test(v.lang));
   const n = $("voiceNotice");
-  if(!synth){ n.textContent="Trình duyệt này không đọc được thành tiếng. Hãy mở bằng Chrome hoặc Safari."; n.classList.remove("hidden"); }
-  else if(voices.length && !hasVi){ n.innerHTML="Máy này chưa có giọng đọc tiếng Việt, nên câu tiếng Việt sẽ chỉ hiện chữ. Trên Windows: Settings → Time &amp; language → Speech → Add voices → Vietnamese. Điện thoại iPhone và Android thường có sẵn."; n.classList.remove("hidden"); }
+  if(!synth){ n.textContent="Trình duyệt này không đọc được thành tiếng. Hãy mở bằng Chrome, Edge hoặc Safari."; n.classList.remove("hidden"); }
+  else if(voices.length && !hasVi){ n.innerHTML="Máy này chưa có giọng đọc tiếng Việt, nên câu tiếng Việt sẽ chỉ hiện chữ. Trên Windows: Settings → Time &amp; language → Speech → Add voices → Vietnamese. Trên Android: Cài đặt → Chuyển văn bản thành giọng nói → cài thêm tiếng Việt."; n.classList.remove("hidden"); }
   else n.classList.add("hidden");
+  showVoiceNames();
 }
-function fillVoiceSelect(id, f){
-  const sel=$(id), cur=S.settings[id]; const list=voices.filter(f).sort((a,b)=>vrank(a)-vrank(b));
-  sel.innerHTML = '<option value="">Tự chọn</option>' + list.map(v=>`<option value="${v.voiceURI.replace(/"/g,'&quot;')}">${v.name} (${v.lang})</option>`).join("");
-  sel.value = list.some(v=>v.voiceURI===cur) ? cur : "";
+function voiceFor(lang){
+  const g = S.settings[lang==="en"?"enGender":"viGender"]||"f", k=lang+g;
+  if(!VCACHE[k]) VCACHE[k]=bestVoice(lang,g);
+  return VCACHE[k];
 }
-if(synth){ loadVoices(); synth.onvoiceschanged = loadVoices; setTimeout(loadVoices,800); }
-function vrank(v){ const n=v.name; return /Natural/i.test(n)?0 : /Google/i.test(n)?1 : /(Aria|Jenny|Guy|Sonia|Ryan|Libby|Samantha|Daniel|HoaiMy|NamMinh|Linh)/i.test(n)?2 : 3; }
-function pickVoice(lang){
-  const key = lang==="vi"?"viVoice":"enVoice";
-  const chosen = voices.find(v=>v.voiceURI===S.settings[key]); if(chosen) return chosen;
-  if(lang==="en"){
-    const all = voices.filter(v=>/^en/i.test(v.lang));
-    const reg = S.settings.accent==="gb" ? /en[-_]GB/i : /en[-_]US/i;
-    let c = all.filter(v=>reg.test(v.lang)); if(!c.length) c=all;
-    return c.sort((a,b)=>vrank(a)-vrank(b))[0] || null;
-  }
-  const c = voices.filter(v=>/^vi/i.test(v.lang));
-  return c.sort((a,b)=>(/HoaiMy/i.test(b.name)-/HoaiMy/i.test(a.name)) || vrank(a)-vrank(b))[0] || null;
+function showVoiceNames(){
+  [["en","enName","enGender"],["vi","viName","viGender"]].forEach(([lang,id,key])=>{
+    const el=$(id); if(!el) return;
+    const r=voiceFor(lang), g=S.settings[key]==="m"?"nam":"nữ";
+    if(!r.v){ el.textContent = voices.length? "Máy này không có giọng phù hợp." : ""; return; }
+    const name=r.v.name.replace(/^Microsoft\s+/,"").replace(/\s*Online \(Natural\)/," (Natural)").replace(/\s*-\s*.*$/,"");
+    let t = r.fb===true ? `Máy này không có giọng ${g}, đang dùng: ${name}.` : r.fb==="unknown" ? `Đang dùng giọng mặc định của máy: ${name}.` : `Đang dùng: ${name}.`;
+    if(IS_ANDROID && r.fb) t += " Muốn đổi giọng nam/nữ trên Android: Cài đặt → Hỗ trợ tiếp cận (hoặc Quản lý chung) → Chuyển văn bản thành giọng nói → biểu tượng bánh răng của Google → Cài đặt dữ liệu giọng nói.";
+    else if(IS_IOS && !/Enhanced|Premium|Nâng cao/i.test(r.v.name)) t += " Mẹo iPhone: Cài đặt → Trợ năng → Nội dung được đọc → Giọng nói, tải bản \"Nâng cao\" của giọng này để nghe tự nhiên hơn.";
+    el.textContent = t;
+  });
 }
+if(synth){ loadVoices(); synth.onvoiceschanged = loadVoices; setTimeout(loadVoices,800); setTimeout(loadVoices,2500); }
+function pickVoice(lang){ return voiceFor(lang).v; }
 function speakText(t){ return t.replace(/→/g," to ").replace(/[–—]/g,", ").replace(/[()]/g," , ").replace(/\s+/g," ").trim(); }
 function speak(text, lang, rateMul=1){
   return new Promise(res=>{
@@ -514,7 +538,7 @@ const Mic = {
     if(this.running || !this.wanted || this.blocked) return;
     try{
       const r = new SR();
-      r.lang = S.settings.accent==="gb" ? "en-GB" : "en-US";
+      r.lang = "en-US";
       r.continuous = true; r.interimResults = true; r.maxAlternatives = 1;
       r.onresult = e=>this._onResult(e);
       r.onerror = e=>{ if(e.error==="not-allowed"||e.error==="service-not-allowed") this.block(); };
@@ -627,7 +651,7 @@ function renderHome(){
   $("wait").value=st.wait; $("waitVal").textContent=st.wait+" giây";
   $("rate").value=st.rate; $("rateVal").textContent=Math.round(st.rate*100)+"%";
   segSet("size",String(st.size)); segSet("hfPrompt",st.hfPrompt); segSet("hfRepeat",String(st.hfRepeat)); segSet("shadowRep",String(st.shadowRep));
-  $("shuffle").checked=st.shuffle; $("hard").checked=st.hard; $("mic").checked=st.mic && MIC_OK; segSet("accent",st.accent);
+  $("shuffle").checked=st.shuffle; $("hard").checked=st.hard; $("mic").checked=st.mic && MIC_OK; segSet("enGender",st.enGender); segSet("viGender",st.viGender); showVoiceNames();
   const nSel = selSet().size, n = buildQueue(true).length;
   $("startBtn").disabled = n===0;
   $("startBtn").textContent = nSel===0 ? "Chọn ít nhất một nhóm câu" : n===0 ? "Chưa có câu hay sai trong phần đã chọn" :
@@ -650,10 +674,8 @@ $("wait").oninput=e=>upd("wait",+e.target.value);
 $("rate").oninput=e=>upd("rate",+e.target.value);
 ["size","hfPrompt","hfRepeat"].forEach(id=>$(id).addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; upd(id, id==="size"? +b.dataset.v : b.dataset.v); }));
 ["shuffle","hard","mic"].forEach(id=>$(id).onchange=e=>upd(id,e.target.checked));
-$("viVoice").onchange=e=>upd("viVoice",e.target.value);
-$("accent").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; S.settings.enVoice=""; upd("accent",b.dataset.v); loadVoices(); speak("I'm a student. Nice to meet you.","en"); });
+["enGender","viGender"].forEach(id=>$(id).addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; upd(id,b.dataset.v); VCACHE={}; showVoiceNames(); id==="enGender" ? speak("I'm a student. Nice to meet you.","en") : speak("Xin chào, tôi là giáo viên của bạn.","vi"); }));
 document.querySelectorAll("[data-test]").forEach(b=>b.onclick=()=>{ b.dataset.test==="vi" ? speak("Xin chào, tôi là giáo viên của bạn.","vi") : speak("I'm a student. Nice to meet you.","en"); });
-$("enVoice").onchange=e=>{ upd("enVoice",e.target.value); speak("I'm a student. Nice to meet you.","en"); };
 $("lockBtn").onclick=()=>{ try{ localStorage.removeItem(KEYK); }catch(e){} location.reload(); };
 $("resetBtn").onclick=()=>{ if(confirm("Xóa toàn bộ tiến độ học trên máy này? Không hoàn tác được.")){ S.prog={}; save(); pushRemote(); renderHome(); } };
 
