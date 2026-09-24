@@ -121,6 +121,11 @@ h2{font-size:1.05rem;margin:28px 0 10px;font-weight:600}
 .pstep{display:flex;gap:14px;padding:14px 0}.pstep+.pstep{border-top:1px solid var(--line)}
 .pstep > div > b{display:block;margin-bottom:2px}.pstep .btn{margin-top:10px;flex:none;min-width:0}
 .pnum{flex:none;width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--surface);display:grid;place-items:center;font-weight:700;font-size:.9rem}
+.meter{height:10px;background:var(--line);border-radius:5px;overflow:hidden;margin-top:12px;max-width:320px;display:none}
+.meter.on{display:block}
+.meter i{display:block;height:100%;width:0;background:var(--ok);transition:width .08s}
+.tapmic{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:14px;padding:16px;border:0;border-radius:14px;background:var(--chalk);color:#1B2A26;font-weight:700;font-size:1.1rem;animation:pulse 1.2s ease-out infinite}
+.aud button.on{background:var(--accent);border-color:var(--accent);color:var(--surface)}
 .pst{margin:8px 0 0;font-size:.9rem}.pst.ok{color:var(--ok)}.pst.bad{color:var(--bad)}
 /* modes */
 .modes{display:grid;gap:8px}
@@ -276,6 +281,7 @@ select{width:100%;padding:8px 10px;border-radius:var(--r-s);border:1.5px solid v
       <div class="row"><span class="l">Học trước: nói nhại mỗi câu</span><div class="seg" id="shadowRep"><button data-v="2">2 lần</button><button data-v="3">3 lần</button></div></div>
       <div class="row"><span class="l">Rảnh tay: câu nhắc là</span><div class="seg" id="hfPrompt"><button data-v="vn">Tiếng Việt</button><button data-v="q">Câu hỏi tiếng Anh</button></div></div>
       <div class="row"><span class="l">Rảnh tay: đọc đáp án</span><div class="seg" id="hfRepeat"><button data-v="1">1 lần</button><button data-v="2">2 lần</button></div></div>
+      <button class="link" id="openPrepBtn" style="justify-self:start">Kiểm tra loa và micro</button>
       <button class="link" id="resetBtn" style="justify-self:start">Xóa toàn bộ tiến độ</button>
       <button class="link" id="lockBtn" style="justify-self:start">Khóa lại (quên mật khẩu trên máy này)</button>
     </div>
@@ -296,6 +302,7 @@ select{width:100%;padding:8px 10px;border-radius:var(--r-s);border:1.5px solid v
       <svg class="ring" id="ring" viewBox="0 0 56 56" aria-hidden="true"><circle class="bgc" cx="28" cy="28" r="24"/><circle class="fg" id="ringFg" cx="28" cy="28" r="24" stroke-dasharray="150.8" stroke-dashoffset="0"/><text x="28" y="29" id="ringTxt"></text></svg>
       <div class="phasebox"><b id="phase"></b><div class="live" id="live" aria-live="polite"></div></div>
     </div>
+    <button class="tapmic hidden" id="tapMic">🎤 Bấm để nói</button>
   </div>
 
   <div class="actions" id="preActs">
@@ -338,14 +345,18 @@ select{width:100%;padding:8px 10px;border-radius:var(--r-s);border:1.5px solid v
 <!-- PREP -->
 <section id="prep" class="hidden">
   <div class="top"><button class="back" id="prepBack">← Quay lại</button><span></span></div>
-  <h1>Chuẩn bị trước khi học</h1>
-  <p class="sub">Làm 2 bước này một lần, để trong bài học máy đọc được và nghe được bạn.</p>
+  <h1>Kiểm tra loa và micro</h1>
+  <p class="sub">Làm lần lượt 3 bước để chắc chắn máy đọc được và nghe được bạn.</p>
   <div class="prepcard">
-    <div class="pstep"><span class="pnum">1</span><div><b>Kiểm tra loa</b><p class="sub">Bấm nút, bạn sẽ nghe giọng nữ và giọng nam tiếng Anh, rồi một câu tiếng Việt. Lần đầu có thể mất vài giây để tải giọng đọc.</p>
+    <div class="pstep"><span class="pnum">1</span><div><b>Kiểm tra loa</b><p class="sub">Bạn sẽ nghe giọng nữ, giọng nam tiếng Anh và một câu tiếng Việt. Lần đầu có thể mất vài giây.</p>
       <button class="btn" id="prepSound">🔊 Nghe thử</button><p class="pst" id="prepSoundSt"></p></div></div>
-    <div class="pstep"><span class="pnum">2</span><div><b>Cho phép micro</b><p class="sub">Trình duyệt sẽ hỏi quyền dùng micro. Hãy chọn <b>Cho phép</b>.</p>
-      <button class="btn" id="prepMic">🎤 Cho phép micro</button><p class="pst" id="prepMicSt"></p></div></div>
+    <div class="pstep"><span class="pnum">2</span><div><b>Kiểm tra micro</b><p class="sub">Bấm nút, cho phép micro nếu được hỏi, rồi nói vài từ. Thanh màu xanh phải nhảy lên theo giọng bạn.</p>
+      <button class="btn" id="prepMic">🎤 Kiểm tra micro</button>
+      <div class="meter" id="meterBox"><i id="meter"></i></div><p class="pst" id="prepMicSt"></p></div></div>
+    <div class="pstep"><span class="pnum">3</span><div><b>Kiểm tra nhận diện giọng nói</b><p class="sub">Bấm nút rồi đọc to: <b>"Hello, how are you?"</b></p>
+      <button class="btn" id="prepSR">🗣️ Nói thử</button><p class="pst" id="prepSRSt"></p></div></div>
   </div>
+  <label class="chk" style="margin-top:14px"><input type="checkbox" id="skipPrep"><div>Không hiện lại màn hình này trên máy này<small>Vẫn mở lại được trong Tùy chỉnh.</small></div></label>
   <button class="start" id="prepGo">Vào bài học</button>
   <button class="link" id="prepNoMic" style="margin-top:12px">Học không dùng micro (tự chấm)</button>
 </section>
@@ -423,7 +434,7 @@ function initData(les){
 }
 
 /* ---------- state & storage ---------- */
-const DEFAULTS = {units:[1],picks:null,shadowRep:"3",learnView:"card",mode:"1",wait:8,rate:0.9,size:20,shuffle:true,hard:false,mic:true,accent:"us",enGender:"f",viGender:"f",hfPrompt:"vn",hfRepeat:"2",viVoice:"",enVoice:"",t:0};
+const DEFAULTS = {units:[1],picks:null,shadowRep:"3",skipPrep:false,learnView:"card",mode:"1",wait:8,rate:0.9,size:20,shuffle:true,hard:false,mic:true,accent:"us",enGender:"f",viGender:"f",hfPrompt:"vn",hfRepeat:"2",viVoice:"",enVoice:"",t:0};
 let S = {settings:{...DEFAULTS}, prog:{}};
 try{ const raw = localStorage.getItem(LSK); if(raw){ const o = JSON.parse(raw); S.settings = {...DEFAULTS,...(o.settings||{})}; S.prog = o.prog||{}; } }catch(e){}
 if(!S.settings.m8){ if(S.settings.wait===5) S.settings.wait=8; S.settings.m8=true; }
@@ -578,57 +589,108 @@ function speak(text, lang, rateMul=1, absRate){
       watch=setTimeout(check, 2500);
     }
     hard=setTimeout(fin, est*3+15000);
-    if(synth.speaking || synth.pending){ try{ synth.cancel(); }catch(_){} setTimeout(()=>attempt(true),200); }
+    if(synth.speaking || synth.pending){
+      try{ synth.cancel(); }catch(_){}
+      // Edge: đợi câu cũ dừng hẳn rồi mới đọc câu mới, nếu không câu mới hay bị im
+      let waited=0; (function w(){ if((synth.speaking||synth.pending) && waited<1000){ waited+=50; setTimeout(w,50); } else setTimeout(()=>attempt(true),80); })();
+    }
     else attempt(true);
   });
 }
 // Làm "ấm" giọng đọc ngay khi người dùng chạm vào trang lần đầu, để câu đầu tiên không bị chậm
-let WARMED=false;
-function warmTTS(){
-  if(WARMED || !synth) return; WARMED=true;
-  try{ const u=new SpeechSynthesisUtterance(" "); u.volume=0; const v=pickVoice("en"); if(v){ u.voice=v; u.lang=v.lang; } synth.speak(u); }catch(_){}
+
+let SLOW_TOK=0;
+async function speakSlow(text, lang){
+  const tk=++SLOW_TOK;
+  if(!(IS_IOS||IS_ANDROID)) return speak(text, lang, 1, 0.6);
+  // Điện thoại hay bỏ qua tốc độ đọc: đọc từng cụm 2–3 từ, có khoảng ngắt
+  const parts=[]; speakText(text).split(/(?<=[,.;:!?])\s+/).forEach(seg=>{ const w=seg.split(/\s+/).filter(Boolean); for(let i=0;i<w.length;i+=3) parts.push(w.slice(i,i+3).join(" ")); });
+  for(const p of parts){ if(tk!==SLOW_TOK) return; await speak(p, lang, 1, 0.7); if(tk!==SLOW_TOK) return; await new Promise(r=>setTimeout(r,280)); }
 }
-document.addEventListener("pointerdown", warmTTS, {once:true, capture:true});
-document.addEventListener("keydown", warmTTS, {once:true, capture:true});
-function stopSpeak(){ try{ synth && synth.cancel(); }catch(e){} }
+function stopSpeak(){ SLOW_TOK++;  try{ synth && synth.cancel(); }catch(e){} }
 
 /* ---------- speech recognition ---------- */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const ONLINE = false;
 const MIC_OK = !!SR && !ONLINE;
 const Mic = {
-  rec:null, capturing:false, text:"", blocked:false, skip:false, resolve:null, idle:null, maxT:null, onText:null,
+  rec:null, capturing:false, recording:false, ending:false, started:false, text:"", prevText:"", blocked:false, skip:false,
+  resolve:null, idle:null, maxT:null, startT:null, prepT:null, endT:null, onText:null, o:{}, capStart:0, lastLen:0, lastErr:null, maxMs:0,
   usable(){ return MIC_OK && S.settings.mic && !this.blocked && !this.skip; },
   open(){}, close(){ this.abort(); },
-  capture(onText, maxMs){
+  // o: {prepMs, onPrepStart, onRecStart, startTimeout}
+  capture(onText, maxMs, o={}){
     if(!this.usable()) return Promise.resolve(null);
-    this.abort();
+    this.abort(); this.lastErr=null;
     return new Promise(res=>{
-      this.resolve=res; this.text=""; this.onText=onText; this.capturing=true;
-      let r; try{ r=new SR(); }catch(e){ this._finish(); return; }
-      r.lang="en-US"; r.continuous=true; r.interimResults=true; r.maxAlternatives=1;
-      r.onresult=e=>{
-        let t="", fin=false;
-        for(let i=0;i<e.results.length;i++){ t+=e.results[i][0].transcript+" "; if(e.results[i].isFinal) fin=true; }
-        t=t.replace(/\s+/g," ").trim(); this.text=t; if(this.onText) this.onText(t);
-        clearTimeout(this.idle); if(t) this.idle=setTimeout(()=>this.endCapture(), fin?1100:1900);
-      };
-      r.onerror=e=>{ if(e.error==="not-allowed"||e.error==="service-not-allowed") this.block(); };
-      r.onend=()=>this._finish();
-      this.rec=r;
-      try{ r.start(); }catch(e){ this._finish(); return; }
-      if(maxMs) this.maxT=setTimeout(()=>this.endCapture(), maxMs);
+      Object.assign(this,{resolve:res,text:"",prevText:"",onText,capturing:true,recording:false,ending:false,started:false,capStart:0,lastLen:0,maxMs,o});
+      this._spawn();
+      this.startT=setTimeout(()=>{ if(!this.started && this.capturing){ this.lastErr=this.lastErr||"nostart"; this.abort(); } }, o.startTimeout||2500);
     });
   },
-  _finish(){
-    clearTimeout(this.idle); clearTimeout(this.maxT); this.rec=null;
-    if(!this.capturing) return;
-    this.capturing=false; const r=this.resolve; this.resolve=null; if(r) r(this.text||null);
+  _spawn(){
+    let r; try{ r=new SR(); }catch(e){ this.lastErr="nostart"; this._finish(); return; }
+    r.lang="en-US"; r.continuous=!IS_ANDROID; r.interimResults=true; r.maxAlternatives=1;
+    r.onstart=()=>{ if(this.started) return; this.started=true; clearTimeout(this.startT); this._first(); };
+    r.onresult=e=>{
+      this.lastLen=e.results.length;
+      if(!this.recording) return;
+      let t="", fin=false;
+      for(let i=this.capStart;i<e.results.length;i++){ t+=e.results[i][0].transcript+" "; if(e.results[i].isFinal) fin=true; }
+      t=((this.prevText?this.prevText+" ":"")+t).replace(/\s+/g," ").trim();
+      this.text=t; if(this.onText) this.onText(t);
+      clearTimeout(this.idle); if(t) this.idle=setTimeout(()=>this.endCapture(), fin?1300:2200);
+    };
+    r.onerror=e=>{ this.lastErr=e.error; if(e.error==="not-allowed"||e.error==="service-not-allowed") this.blocked=true; };
+    r.onend=()=>{
+      this.rec=null;
+      if(!this.capturing) return;
+      if(this.ending || (this.lastErr && this.lastErr!=="no-speech")){ this._finish(); return; }
+      // Tự dừng giữa chừng (Android, hoặc im lặng lâu): bật lại để nghe tiếp trong thời gian còn lại
+      this.prevText=this.text; this.capStart=0; this.lastLen=0;
+      setTimeout(()=>{ if(this.capturing && !this.ending) this._spawn(); },150);
+    };
+    this.rec=r;
+    try{ r.start(); }catch(e){ this.lastErr="nostart"; this.abort(); }
   },
-  endCapture(){ if(!this.capturing) return; try{ this.rec && this.rec.stop(); }catch(e){} setTimeout(()=>this._finish(), 1200); },
-  abort(){ const r=this.rec; if(r){ try{ r.onend=null; r.abort(); }catch(e){} } this._finish(); },
+  _first(){
+    const o=this.o;
+    if(o.prepMs){ o.onPrepStart && o.onPrepStart(); this.prepT=setTimeout(()=>this._beginRec(), o.prepMs); }
+    else this._beginRec();
+  },
+  _beginRec(){
+    if(!this.capturing) return;
+    this.recording=true; this.capStart=this.lastLen; this.text=""; this.prevText="";
+    this.o.onRecStart && this.o.onRecStart();
+    if(this.maxMs) this.maxT=setTimeout(()=>this.endCapture(), this.maxMs);
+  },
+  endCapture(){
+    if(!this.capturing || this.ending) return;
+    if(!this.recording){ this.abort(); return; }
+    this.ending=true; clearTimeout(this.idle); clearTimeout(this.maxT);
+    const r=this.rec; if(r){ try{ r.stop(); }catch(e){ this._finish(); return; } } else { this._finish(); return; }
+    this.endT=setTimeout(()=>this._finish(), 3000);   // chờ kết quả cuối (Edge, iPhone trả về chậm)
+  },
+  _finish(){
+    [this.idle,this.maxT,this.startT,this.prepT,this.endT].forEach(t=>clearTimeout(t));
+    if(!this.capturing) return;
+    this.capturing=false; this.recording=false; this.ending=false;
+    const r=this.resolve; this.resolve=null; if(r) r(this.text||null);
+  },
+  abort(){ const r=this.rec; this.rec=null; if(r){ try{ r.onend=null; r.abort(); }catch(e){} } this._finish(); },
   block(){ this.blocked=true; MIC_PERM="denied"; }
 };
+function srErrText(err){
+  const win=/Windows/i.test(navigator.userAgent);
+  return ({
+    "not-allowed": IS_IOS ? "Safari đang chặn micro. Vào Cài đặt → Safari → Micro → Cho phép, rồi tải lại trang." : "Micro bị chặn. Bấm biểu tượng ổ khóa cạnh thanh địa chỉ → Micro → Cho phép, rồi tải lại trang.",
+    "service-not-allowed": IS_IOS ? "iPhone đang tắt Đọc chính tả. Vào Cài đặt → Cài đặt chung → Bàn phím → bật Đọc chính tả, rồi tải lại trang." : (win ? "Windows đang tắt nhận diện giọng nói trực tuyến. Vào Cài đặt Windows → Quyền riêng tư và bảo mật → Giọng nói → bật Nhận dạng giọng nói trực tuyến." : "Trình duyệt đang tắt nhận diện giọng nói."),
+    "network": "Không kết nối được dịch vụ nhận diện giọng nói. Kiểm tra mạng; mạng công ty có thể chặn dịch vụ này.",
+    "audio-capture": "Không tìm thấy micro, hoặc micro đang bị ứng dụng khác dùng.",
+    "no-speech": "Máy không nghe thấy tiếng nói. Hãy nói to và gần micro hơn.",
+    "nostart": IS_IOS ? "iPhone không cho tự bật micro. Hãy bấm nút 🎤 để nói." : "Máy không bật được nhận diện giọng nói."
+  })[err] || (err ? "Lỗi nhận diện giọng nói: "+err : "");
+}
 let MIC_PERM="prompt";
 (async()=>{ try{ const p=await navigator.permissions.query({name:"microphone"}); MIC_PERM=p.state; p.onchange=()=>{ MIC_PERM=p.state; if(p.state==="granted") Mic.blocked=false; }; }catch(e){} })();
 async function requestMic(){
@@ -746,34 +808,61 @@ function show(id){ ["lock","home","drill","summary","picker","learn","prep"].for
 $("startBtn").onclick=()=>{ const q=buildQueue(); const go=()=> S.settings.mode==="0" ? startLearn(q) : startRun(q); (S.settings.mode==="4") ? go() : gate(go); };
 let PREP_OK=false, PENDING=null;
 function gate(fn){
-  if(!PREP_OK && MIC_OK && S.settings.mic && !Mic.skip && MIC_PERM!=="granted"){ PENDING=fn; openPrep(); return; }
+  if(!PREP_OK && !S.settings.skipPrep){ PENDING=fn; openPrep(); return; }
   fn();
 }
 function openPrep(){
-  $("prepSoundSt").textContent=""; $("prepSoundSt").className="pst";
-  $("prepMicSt").className="pst";
-  $("prepMicSt").textContent = MIC_PERM==="denied" ? "Micro đang bị chặn. Trên máy tính: bấm biểu tượng ổ khóa cạnh thanh địa chỉ → Micro → Cho phép, rồi tải lại trang. Trên iPhone: Cài đặt → Safari → Micro → Cho phép." : "";
-  if(MIC_PERM==="denied") $("prepMicSt").classList.add("bad");
+  ["prepSoundSt","prepMicSt","prepSRSt"].forEach(id=>{ $(id).textContent=""; $(id).className="pst"; });
+  $("skipPrep").checked=!!S.settings.skipPrep;
+  if(!MIC_OK){ $("prepMicSt").textContent="Trình duyệt này không hỗ trợ nhận diện giọng nói. Bạn vẫn học được bằng cách tự chấm."; $("prepMic").disabled=true; $("prepSR").disabled=true; }
+  else if(MIC_PERM==="denied"){ $("prepMicSt").className="pst bad"; $("prepMicSt").textContent=srErrText("not-allowed"); }
   show("prep");
 }
+$("openPrepBtn").onclick=()=>{ PENDING=null; openPrep(); };
+$("skipPrep").onchange=e=>upd("skipPrep",e.target.checked);
 $("prepSound").onclick=async ()=>{
-  $("prepSoundSt").className="pst"; $("prepSoundSt").textContent="Đang phát…";
+  const st=$("prepSoundSt"); st.className="pst"; st.textContent="Đang phát…"; $("prepSound").disabled=true;
   CUR_G.en="f"; CUR_G.vi="f";
   await speak("Hello! Let's practice English together.","en",1,1.0);
   CUR_G.en="m";
   await speak("I'm your teacher today.","en",1,1.0);
   await speak("Xin chào, chúng ta cùng luyện tiếng Anh nhé.","vi");
-  $("prepSoundSt").textContent="Nếu không nghe thấy: tăng âm lượng, tắt chế độ im lặng (iPhone: gạt nút bên hông), hoặc thử cắm tai nghe rồi bấm lại.";
+  $("prepSound").disabled=false;
+  st.textContent = "Nếu không nghe thấy: tăng âm lượng" + (IS_IOS? ", tắt chế độ im lặng (gạt nút bên hông iPhone)" : "") + ", hoặc thử tai nghe rồi bấm lại.";
 };
+let METER=null;
 $("prepMic").onclick=async ()=>{
-  $("prepMicSt").className="pst"; $("prepMicSt").textContent="Đang chờ bạn chọn Cho phép…";
-  const ok=await requestMic();
-  $("prepMicSt").className="pst "+(ok?"ok":"bad");
-  $("prepMicSt").textContent = ok ? "✓ Đã cho phép micro." : "✗ Micro bị chặn. Trên máy tính: bấm biểu tượng ổ khóa cạnh thanh địa chỉ → Micro → Cho phép, rồi tải lại trang. Trên iPhone: Cài đặt → Safari → Micro → Cho phép.";
+  const st=$("prepMicSt"), box=$("meterBox"), bar=$("meter");
+  if(METER){ METER(); return; }
+  st.className="pst"; st.textContent="Đang chờ bạn cho phép micro…";
+  let stream;
+  try{ stream=await navigator.mediaDevices.getUserMedia({audio:true}); MIC_PERM="granted"; Mic.blocked=false; }
+  catch(e){ st.className="pst bad"; st.textContent="✗ "+srErrText(e && e.name==="NotFoundError" ? "audio-capture" : "not-allowed"); return; }
+  const AC=window.AudioContext||window.webkitAudioContext; let ctx=null, peak=0, raf=0;
+  box.classList.add("on"); $("prepMic").textContent="■ Dừng"; st.textContent="Hãy nói vài từ…";
+  const stop=()=>{ cancelAnimationFrame(raf); clearTimeout(tmo); stream.getTracks().forEach(t=>t.stop()); try{ ctx&&ctx.close(); }catch(_){} METER=null; bar.style.width="0"; box.classList.remove("on"); $("prepMic").textContent="🎤 Kiểm tra micro";
+    st.className="pst "+(peak>0.06?"ok":"bad"); st.textContent = peak>0.06 ? "✓ Micro thu được tiếng của bạn." : "✗ Micro chưa thu được tiếng. Kiểm tra micro có bị tắt tiếng, hoặc thử tai nghe có micro."; };
+  METER=stop; const tmo=setTimeout(stop,6000);
+  try{
+    ctx=new AC(); await ctx.resume(); const an=ctx.createAnalyser(); an.fftSize=512; ctx.createMediaStreamSource(stream).connect(an);
+    const buf=new Uint8Array(an.fftSize);
+    (function loop(){ an.getByteTimeDomainData(buf); let sum=0; for(const v of buf){ const x=(v-128)/128; sum+=x*x; } const rms=Math.sqrt(sum/buf.length); peak=Math.max(peak,rms); bar.style.width=Math.min(100,rms*400)+"%"; raf=requestAnimationFrame(loop); })();
+  }catch(e){ peak=1; stop(); st.textContent="✓ Đã cho phép micro (máy không hiển thị được sóng âm)."; }
 };
-$("prepGo").onclick=()=>{ PREP_OK=true; const f=PENDING; PENDING=null; if(f) f(); else show("home"); };
-$("prepNoMic").onclick=()=>{ Mic.skip=true; PREP_OK=true; const f=PENDING; PENDING=null; if(f) f(); else show("home"); };
-$("prepBack").onclick=()=>{ PENDING=null; show("home"); };
+$("prepSR").onclick=async ()=>{
+  const st=$("prepSRSt");
+  if(Mic.capturing){ Mic.endCapture(); return; }
+  if(!MIC_OK){ return; }
+  Mic.skip=false; Mic.blocked=false;
+  st.className="pst"; st.textContent="Đang bật micro…"; $("prepSR").textContent="■ Dừng";
+  const t=await Mic.capture(x=>{ st.innerHTML="Đang nghe: <b>"+esc(x)+"</b>"; }, 7000, {prepMs:0, onRecStart:()=>{ st.innerHTML="<b>🔴 Mời bạn nói: Hello, how are you?</b>"; }});
+  $("prepSR").textContent="🗣️ Nói thử";
+  if(t){ const c=compare("Hello, how are you?", t), pct=Math.round(c.score*100); st.className="pst "+(pct>=60?"ok":"bad"); st.innerHTML=`${pct>=60?"✓":"△"} Máy nghe được: "<b>${esc(t)}</b>" (khớp ${pct}%).`; }
+  else { st.className="pst bad"; st.textContent="✗ Máy chưa nhận diện được. "+srErrText(Mic.lastErr||"no-speech"); }
+};
+$("prepGo").onclick=()=>{ if(METER) METER(); Mic.abort(); PREP_OK=true; const f=PENDING; PENDING=null; if(f) f(); else show("home"); };
+$("prepNoMic").onclick=()=>{ if(METER) METER(); Mic.abort(); Mic.skip=true; PREP_OK=true; const f=PENDING; PENDING=null; if(f) f(); else show("home"); };
+$("prepBack").onclick=()=>{ if(METER) METER(); Mic.abort(); PENDING=null; show("home"); };
 function startRun(queue, modeOverride){
   if(!queue.length) return;
   stopSpeak(); stopListen();
@@ -832,7 +921,7 @@ async function nextCard(){
   if(run.i>=run.queue.length){ finish(); return; }
   const token = run.token, d=cur(), mode=run.mode;
   const stale = ()=> !run || run.token!==token || run.revealed || run.queue[run.i]!==d.id;
-  run.revealed=false; run.transcript=null; run.verdict=null; rollVoices();
+  run.revealed=false; run.transcript=null; run.verdict=null; run.micErr=null; run.tapResolve=null; $("tapMic").classList.add("hidden"); rollVoices();
   if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
   setProgress();
   $("post").classList.add("hidden"); $("preActs").classList.remove("hidden"); $("replayQ").disabled=false;
@@ -841,16 +930,23 @@ async function nextCard(){
   await speak(mode==="3"? d.q : d.vn, mode==="3"?"en":"vi");
   if(stale()) return;
   if(Mic.usable()){
-    setPhase("Chuẩn bị…");
-    await countdown(3, token);
-    if(stale()) return;
-    $("replayQ").disabled=true;
-    setPhase("Mời bạn nói", true); $("live").textContent="Đang ghi âm…";
-    const cd = countdown(S.settings.wait, token);
-    const text = await Mic.capture(t=>{ if(!stale()) $("live").textContent=t; }, S.settings.wait*1000+300);
+    const live=t=>{ if(!stale()) $("live").textContent=t; };
+    const opts={prepMs:3000,
+      onPrepStart:()=>{ if(stale()) return; setPhase("Chuẩn bị…"); countdown(3, token); },
+      onRecStart:()=>{ if(stale()) return; $("replayQ").disabled=true; setPhase("Mời bạn nói", true); $("live").textContent="Đang ghi âm…"; countdown(S.settings.wait, token); }};
+    let text=null;
+    if(!Mic.needTap){
+      setPhase("Đang bật micro…");
+      text = await Mic.capture(live, S.settings.wait*1000, opts);
+      if(stale()) return;
+      if(!text && Mic.lastErr==="nostart") Mic.needTap=true;   // iPhone: từ câu sau hiện nút bấm ngay
+    }
+    if(!text && Mic.needTap && !Mic.blocked){
+      text = await tapToSpeak(token, live);
+      if(stale()) return;
+    }
     if(countdownStop) countdownStop();
-    if(stale()) return;
-    run.transcript=text; reveal();
+    run.transcript=text; run.micErr = text ? null : Mic.lastErr; reveal();
   } else {
     setPhase("Nói to câu trả lời của bạn");
     await countdown(S.settings.wait, token);
@@ -858,10 +954,26 @@ async function nextCard(){
     reveal();
   }
 }
+function tapToSpeak(token, live){
+  return new Promise(res=>{
+    setPhase("Bấm nút bên dưới rồi nói"); $("live").textContent=""; $("ringTxt").textContent=""; $("ringFg").style.strokeDashoffset=150.8;
+    const b=$("tapMic"); b.classList.remove("hidden");
+    run.tapResolve=v=>{ b.classList.add("hidden"); run.tapResolve=null; res(v); };
+    b.onclick=()=>{
+      b.classList.add("hidden");
+      Mic.capture(live, S.settings.wait*1000, {prepMs:3000,
+        onPrepStart:()=>{ setPhase("Chuẩn bị…"); countdown(3, token); },
+        onRecStart:()=>{ setPhase("Mời bạn nói", true); $("live").textContent="Đang ghi âm…"; countdown(S.settings.wait, token); }})
+        .then(t=>{ if(run && run.tapResolve) run.tapResolve(t); });
+    };
+  });
+}
 function paintWords(d, c){ $("ansEn").innerHTML = c.words.map((w,i)=>`<span class="w ${c.wordHit[i]?"hit":"miss"}">${esc(w)}</span>`).join(" "); }
 function reveal(){
   if(!run || run.revealed) return;
-  if(Mic.capturing){ const t=Mic.text; Mic.abort(); if(!run.transcript && t) run.transcript=t; }
+  if(Mic.capturing){ const t=Mic.recording?Mic.text:null; Mic.abort(); if(!run.transcript && t) run.transcript=t; }
+  if(run.tapResolve){ const f=run.tapResolve; f(null); }
+  $("tapMic").classList.add("hidden");
   run.revealed=true; if(countdownStop) countdownStop();
   const d=cur();
   setPhase(""); $("live").textContent="";
@@ -883,29 +995,34 @@ function reveal(){
   } else {
     run.verdict=null;
     $("ansEn").textContent=d.en; $("verdict").classList.add("hidden");
-    $("said").textContent = Mic.usable() ? "Máy chưa nghe được giọng của bạn. Bấm 🎤 Đọc lại để thử, hoặc tự đánh giá." : "";
-    $("said").classList.toggle("hidden", !Mic.usable());
+    const why = run.micErr ? srErrText(run.micErr) : "";
+    $("said").textContent = Mic.usable() || run.micErr ? `Máy chưa nghe được giọng của bạn. ${why} Bấm 🎤 Đọc lại để thử, hoặc tự đánh giá.` : "";
+    $("said").classList.toggle("hidden", !(Mic.usable() || run.micErr));
     $("nextRow").classList.add("hidden"); $("selfRow").classList.remove("hidden");
   }
   speak(d.en,"en",1,1.0);
   $("post").scrollIntoView({behavior:"smooth",block:"nearest"});
 }
+let RETRY_TICK=null;
+function retryTicker(label, sec){ clearInterval(RETRY_TICK); let left=sec; const el=$("retryRes"); el.innerHTML=`<b>${label} ${left}</b>`; RETRY_TICK=setInterval(()=>{ left--; if(left<=0){ clearInterval(RETRY_TICK); return; } el.innerHTML=`<b>${label} ${left}</b>`+(Mic.text&&Mic.recording?`<br>${esc(Mic.text)}`:""); },1000); }
 async function retrySpeak(){
   if(!run || !run.revealed || !Mic.usable()) return;
   const btn=$("retryMic");
   if(Mic.capturing){ Mic.endCapture(); return; }
   stopSpeak(); const d=cur(), token=run.token;
-  await new Promise(r=>setTimeout(r,200));
   btn.classList.add("on"); btn.textContent="■ Dừng";
-  $("retryRes").textContent="Đang nghe, bạn đọc lại câu trên…";
-  const t = await Mic.capture(x=>{ $("retryRes").textContent="Đang nghe: "+x; }, 10000);
+  $("retryRes").textContent="Đang bật micro…";
+  const t = await Mic.capture(x=>{ $("retryRes").innerHTML=`<b>🔴 Đang ghi âm…</b><br>${esc(x)}`; }, S.settings.wait*1000, {prepMs:3000,
+    onPrepStart:()=>retryTicker("Chuẩn bị…",3),
+    onRecStart:()=>retryTicker("🔴 Mời bạn đọc lại…", S.settings.wait)});
+  clearInterval(RETRY_TICK);
   btn.classList.remove("on"); btn.textContent="🎤 Đọc lại";
   if(!run || run.token!==token || cur()!==d) return;
   if(t){
     const c=compare(d.en,t), pct=Math.round(c.score*100); paintWords(d,c);
     $("retryRes").innerHTML = `Lần đọc lại: bạn nói "<b>${esc(t)}</b>", khớp <b>${pct}%</b>. ${pct>=80?"Tốt lắm!":"Nghe lại mẫu rồi thử lần nữa nhé."}`;
     if(run.verdict===null){ $("gBad").classList.toggle("sugg",pct<80); $("gOk").classList.toggle("sugg",pct>=80); }
-  } else $("retryRes").textContent="Máy chưa nghe được. Bấm 🎤 Đọc lại để thử lần nữa.";
+  } else $("retryRes").textContent = "Máy chưa nghe được. " + srErrText(Mic.lastErr) + " Bấm 🎤 Đọc lại để thử lần nữa.";
 }
 function grade(g){
   if(!run || !run.revealed) return;
@@ -921,8 +1038,13 @@ function grade(g){
 }
 $("reveal").onclick=reveal;
 $("replayQ").onclick=()=>{ if(!run||run.revealed||Mic.capturing) return; const d=cur(); speak(run.mode==="3"?d.q:d.vn, run.mode==="3"?"en":"vi"); };
-$("playN").onclick=()=>{ Mic.abort(); speak(cur().en,"en",1,1.0); };
-$("playS").onclick=()=>{ Mic.abort(); speak(cur().en,"en",1,0.6); };
+function playBtn(btn, fn){
+  if(btn.classList.contains("on")){ stopSpeak(); document.querySelectorAll(".aud button.on").forEach(b=>b.classList.remove("on")); return; }
+  Mic.abort(); document.querySelectorAll(".aud button.on").forEach(b=>{ if(b.id!=="retryMic") b.classList.remove("on"); });
+  btn.classList.add("on"); Promise.resolve(fn()).finally(()=>btn.classList.remove("on"));
+}
+$("playN").onclick=()=>playBtn($("playN"),()=>{ SLOW_TOK++; return speak(cur().en,"en",1,1.0); });
+$("playS").onclick=()=>playBtn($("playS"),()=>speakSlow(cur().en,"en"));
 $("retryMic").onclick=retrySpeak;
 $("showHint").onclick=()=>renderPrompt(cur(), run.mode, true);
 $("nextBtn").onclick=()=>{ if(run && run.verdict) grade(run.verdict); };
@@ -1067,9 +1189,10 @@ async function learnLoop(tk){
       if(lStale(tk)||L.jump) break;
       if(L.paused){ continue; }
       const gap=Math.max(1800, 800 + d.en.length*85/(S.settings.rate||1));
-      if(Mic.usable()){
+      if(Mic.usable() && !L.noAutoMic){
         lMsg("Bạn nói theo…");
         const t=await Mic.capture(x=>lMsg("Đang nghe: "+x), gap+2500);
+        if(!t && Mic.lastErr==="nostart"){ L.noAutoMic=true; }
         if(lStale(tk)||L.jump) break;
         if(L.paused){ continue; }
         if(t){ const c=compare(d.en,t); lMsg(`Lần ${r+1}: khớp ${Math.round(c.score*100)}%${c.score>=0.9?", rất tốt":""}`); }
@@ -1091,8 +1214,8 @@ async function learnLoop(tk){
 }
 function lJump(i){ if(!L) return; if(i>=L.ids.length){ learnDone(); return; } L.i=Math.max(0,i); L.jump=true; stopSpeak(); Mic.endCapture(); if(L.paused){ L.paused=false; $("lPause").textContent="Tạm dừng"; } }
 function lHold(){ if(!L) return; L.paused=true; $("lPause").textContent="Tiếp tục"; Mic.abort(); lMsg("Đang tạm dừng. Bấm Tiếp tục để luyện tiếp."); }
-$("lPlayN").onclick=()=>{ if(!L) return; lHold(); speak(BYID[L.ids[L.i]].en,"en",1,1.0); };
-$("lPlayS").onclick=()=>{ if(!L) return; lHold(); speak(BYID[L.ids[L.i]].en,"en",1,0.6); };
+$("lPlayN").onclick=()=>{ if(!L) return; lHold(); playBtn($("lPlayN"),()=>{ SLOW_TOK++; return speak(BYID[L.ids[L.i]].en,"en",1,1.0); }); };
+$("lPlayS").onclick=()=>{ if(!L) return; lHold(); playBtn($("lPlayS"),()=>speakSlow(BYID[L.ids[L.i]].en,"en")); };
 $("lPrev").onclick=()=>lJump(L.i-1);
 $("lNext").onclick=()=>lJump(L.i+1);
 $("lPause").onclick=()=>{ if(!L) return; L.paused=!L.paused; $("lPause").textContent=L.paused?"Tiếp tục":"Tạm dừng"; if(L.paused){ stopSpeak(); Mic.endCapture(); lMsg("Đang tạm dừng"); } };
@@ -1108,7 +1231,7 @@ function renderLearnList(){
 }
 function markListCur(id){ id = id || (L && L.ids[L.i]); document.querySelectorAll("#lList .litem").forEach(x=>x.classList.toggle("cur",x.dataset.id===id)); }
 $("lList").addEventListener("click",async e=>{
-  const sl=e.target.closest("[data-slow]"); if(sl){ L.listTok++; Mic.abort(); markListCur(sl.dataset.slow); speak(BYID[sl.dataset.slow].en,"en",1,0.6); return; }
+  const sl=e.target.closest("[data-slow]"); if(sl){ L.listTok++; Mic.abort(); markListCur(sl.dataset.slow); speakSlow(BYID[sl.dataset.slow].en,"en"); return; }
   const s1=e.target.closest("[data-say]"); if(s1){ L.listTok++; Mic.endCapture(); markListCur(s1.dataset.say); speak(BYID[s1.dataset.say].en,"en",1,1.0); return; }
   const r1=e.target.closest("[data-rec]"); if(r1){
     const id=r1.dataset.rec, row=r1.closest(".litem"), out=row.querySelector(".r");
