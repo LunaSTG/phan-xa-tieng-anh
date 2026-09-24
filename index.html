@@ -105,6 +105,23 @@ h2{font-size:1.05rem;margin:28px 0 10px;font-weight:600}
 .lockbox{background:var(--surface);border:1.5px solid var(--line);border-radius:var(--r-l);padding:18px;margin-top:22px;display:grid;gap:12px;max-width:440px}
 .lockbox input[type=password]{width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);font-size:1.05rem}
 .err{color:var(--bad);margin:0;font-weight:500}
+.phasebox{flex:1;min-width:0}
+.phasebox b{display:block;color:var(--chalk);font-size:1.05rem;font-weight:600;min-height:1.4em}
+.ring.rec .fg{stroke:var(--bad)}
+.verdict{display:inline-block;font-weight:700;border-radius:999px;padding:6px 14px;margin-bottom:10px;font-size:.95rem}
+.verdict.ok{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.verdict.bad{background:color-mix(in srgb,var(--bad) 18%,transparent);color:var(--bad)}
+.aud{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.aud button{border:1.5px solid var(--line);background:var(--bg);border-radius:999px;padding:9px 16px;font-weight:600}
+.aud button.on{background:var(--bad);border-color:var(--bad);color:#fff}
+.grades2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.grades2 button.sugg{color:var(--surface)}
+.grades2 button{padding:14px 6px;border-radius:12px;border:2px solid;font-weight:600;background:var(--surface)}
+.prepcard{background:var(--surface);border:1.5px solid var(--line);border-radius:var(--r-l);padding:6px 18px;margin-top:18px}
+.pstep{display:flex;gap:14px;padding:14px 0}.pstep+.pstep{border-top:1px solid var(--line)}
+.pstep > div > b{display:block;margin-bottom:2px}.pstep .btn{margin-top:10px;flex:none;min-width:0}
+.pnum{flex:none;width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--surface);display:grid;place-items:center;font-weight:700;font-size:.9rem}
+.pst{margin:8px 0 0;font-size:.9rem}.pst.ok{color:var(--ok)}.pst.bad{color:var(--bad)}
 /* modes */
 .modes{display:grid;gap:8px}
 .mode{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer}
@@ -180,7 +197,7 @@ select{width:100%;padding:8px 10px;border-radius:var(--r-s);border:1.5px solid v
 .small{background:none;border:0;color:var(--accent);font-weight:600;padding:8px 0;margin-top:6px}
 
 /* summary */
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:18px 0}
 .stat{background:var(--surface);border-radius:12px;padding:14px;text-align:center;border:1.5px solid var(--line)}
 .stat strong{display:block;font-size:1.8rem;line-height:1.1}
 .stat span{font-size:.85rem;color:var(--muted)}
@@ -188,7 +205,7 @@ select{width:100%;padding:8px 10px;border-radius:var(--r-s);border:1.5px solid v
 .item{background:var(--surface);border-radius:10px;padding:10px 14px;border:1.5px solid var(--line)}
 .item p{margin:0}.item p+p{color:var(--muted);font-size:.9rem}
 
-.grades kbd{font-family:inherit;font-size:.7rem;font-weight:500;opacity:.6;margin-left:6px;border:1px solid currentColor;border-radius:4px;padding:0 4px}
+.grades2 kbd,.grades kbd{font-family:inherit;font-size:.7rem;font-weight:500;opacity:.6;margin-left:6px;border:1px solid currentColor;border-radius:4px;padding:0 4px}
 @media (hover:none){kbd{display:none!important}}
 
 .vrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -250,7 +267,7 @@ select{width:100%;padding:8px 10px;border-radius:var(--r-s);border:1.5px solid v
   <details class="set" id="setBox">
     <summary>Tùy chỉnh</summary>
     <div class="setbody">
-      <div class="row"><label class="l" for="wait">Thời gian để nói <span class="val" id="waitVal"></span></label><input type="range" id="wait" min="3" max="15" step="1"></div>
+      <div class="row"><label class="l" for="wait">Thời gian ghi âm câu trả lời <span class="val" id="waitVal"></span></label><input type="range" id="wait" min="3" max="15" step="1"></div>
       <div class="row"><label class="l" for="rate">Tốc độ đọc <span class="val" id="rateVal"></span></label><input type="range" id="rate" min="0.6" max="1.2" step="0.05"></div>
       <div class="row"><span class="l">Số câu mỗi lượt</span><div class="seg" id="size"><button data-v="10">10</button><button data-v="20">20</button><button data-v="30">30</button><button data-v="0">Tất cả</button></div></div>
       <label class="chk"><input type="checkbox" id="shuffle"><div>Trộn thứ tự câu<small>Tắt để học theo đúng thứ tự trong bài.</small></div></label>
@@ -278,31 +295,38 @@ select{width:100%;padding:8px 10px;border-radius:var(--r-s);border:1.5px solid v
     <div class="prompt" id="prompt"></div>
     <div class="hint" id="hint"></div>
     <div class="timer" id="timerBox">
-      <svg class="ring" viewBox="0 0 56 56" aria-hidden="true"><circle class="bgc" cx="28" cy="28" r="24"/><circle class="fg" id="ringFg" cx="28" cy="28" r="24" stroke-dasharray="150.8" stroke-dashoffset="0"/><text x="28" y="29" id="ringTxt"></text></svg>
-      <div class="live" id="live" aria-live="polite"></div>
-      <button class="micbtn hidden" id="micBtn" aria-label="Bấm để nói"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1"/><path d="M12 18v4"/></svg></button>
+      <svg class="ring" id="ring" viewBox="0 0 56 56" aria-hidden="true"><circle class="bgc" cx="28" cy="28" r="24"/><circle class="fg" id="ringFg" cx="28" cy="28" r="24" stroke-dasharray="150.8" stroke-dashoffset="0"/><text x="28" y="29" id="ringTxt"></text></svg>
+      <div class="phasebox"><b id="phase"></b><div class="live" id="live" aria-live="polite"></div></div>
     </div>
   </div>
 
   <div class="actions" id="preActs">
-    <button class="btn" id="replayQ">🔊 Đọc lại</button>
+    <button class="btn" id="replayQ">🔊 Nghe lại câu hỏi</button>
     <button class="btn hidden" id="showHint">Gợi ý</button>
-    <button class="btn main" id="reveal">Hiện đáp án<kbd>Space</kbd></button>
+    <button class="btn main" id="reveal">Không nhớ, xem đáp án</button>
   </div>
 
   <div id="post" class="hidden">
     <div class="answer">
+      <div class="verdict hidden" id="verdict"></div>
       <p class="en" id="ansEn"></p>
       <p class="ipa" id="ansIpa"></p>
       <p class="vn" id="ansVn"></p>
       <p class="said hidden" id="said"></p>
-      <div class="ansbtns"><button class="small" id="replayA">🔊 Nghe lại đáp án <kbd style="font:inherit;font-size:.75rem;opacity:.6">R</kbd></button><button class="small hidden" id="retryMic">🎤 Nói lại để kiểm tra <kbd style="font:inherit;font-size:.75rem;opacity:.6">M</kbd></button></div>
+      <div class="aud" id="audRow">
+        <button id="playN" aria-label="Nghe đáp án tốc độ bình thường">🔊 Nghe</button>
+        <button id="playS" aria-label="Nghe đáp án chậm">🐢 Chậm</button>
+        <button id="retryMic" class="hidden">🎤 Đọc lại</button>
+      </div>
+      <p class="said" id="retryRes"></p>
       <div class="meta" id="ansMeta"></div>
     </div>
-    <div class="grades" id="grades">
-      <button class="g1" data-g="1">Sai<kbd class="k">1</kbd></button>
-      <button class="g2" data-g="2">Gần đúng<kbd class="k">2</kbd></button>
-      <button class="g3" data-g="3">Đúng<kbd class="k">3</kbd></button>
+    <div id="grades">
+      <div class="actions" id="nextRow"><button class="btn main" id="nextBtn">Câu tiếp →<kbd>Enter</kbd></button></div>
+      <div class="hidden" id="selfRow">
+        <p class="said" style="margin:14px 0 0">Tự đánh giá câu trả lời của bạn:</p>
+        <div class="grades2"><button class="g1" id="gBad">Học lại<kbd class="k">1</kbd></button><button class="g3" id="gOk">Thuộc<kbd class="k">2</kbd></button></div>
+      </div>
     </div>
   </div>
 
@@ -311,6 +335,21 @@ select{width:100%;padding:8px 10px;border-radius:var(--r-s);border:1.5px solid v
     <button class="btn" id="hfSkip">Câu tiếp</button>
     <button class="btn main" id="hfStop">Kết thúc</button>
   </div>
+</section>
+
+<!-- PREP -->
+<section id="prep" class="hidden">
+  <div class="top"><button class="back" id="prepBack">← Quay lại</button><span></span></div>
+  <h1>Chuẩn bị trước khi học</h1>
+  <p class="sub">Làm 2 bước này một lần, để trong bài học máy đọc được và nghe được bạn.</p>
+  <div class="prepcard">
+    <div class="pstep"><span class="pnum">1</span><div><b>Kiểm tra loa</b><p class="sub">Bấm nút, bạn sẽ nghe một câu tiếng Anh và một câu tiếng Việt.</p>
+      <button class="btn" id="prepSound">🔊 Nghe thử</button><p class="pst" id="prepSoundSt"></p></div></div>
+    <div class="pstep"><span class="pnum">2</span><div><b>Cho phép micro</b><p class="sub">Trình duyệt sẽ hỏi quyền dùng micro. Hãy chọn <b>Cho phép</b>.</p>
+      <button class="btn" id="prepMic">🎤 Cho phép micro</button><p class="pst" id="prepMicSt"></p></div></div>
+  </div>
+  <button class="start" id="prepGo">Vào bài học</button>
+  <button class="link" id="prepNoMic" style="margin-top:12px">Học không dùng micro (tự chấm)</button>
 </section>
 
 <!-- PICKER -->
@@ -335,6 +374,7 @@ select{width:100%;padding:8px 10px;border-radius:var(--r-s);border:1.5px solid v
       <p class="lvn" id="lVn"></p>
       <div class="lstate"><span class="reps" id="lReps"></span><span id="lMsg" aria-live="polite"></span></div>
     </div>
+    <div class="aud" style="margin-top:12px"><button id="lPlayN">🔊 Nghe</button><button id="lPlayS">🐢 Chậm</button></div>
     <div class="actions"><button class="btn" id="lPrev">◀ Câu trước</button><button class="btn" id="lPause">Tạm dừng</button><button class="btn" id="lNext">Câu tiếp ▶</button></div>
   </div>
   <div id="lListView" class="hidden">
@@ -350,7 +390,7 @@ select{width:100%;padding:8px 10px;border-radius:var(--r-s);border:1.5px solid v
   <p class="sub" id="sumSub"></p>
   <div class="stats" id="sumStats"></div>
   <div class="actions" id="sumActs">
-    <button class="btn main" id="againWrong">Luyện lại câu sai</button>
+    <button class="btn main" id="againWrong">Luyện lại câu cần học lại</button>
     <button class="btn" id="goHome">Về trang chính</button>
   </div>
   <h2 id="wrongHead">Câu cần ôn thêm</h2>
@@ -502,17 +542,35 @@ function showVoiceNames(){
 if(synth){ loadVoices(); synth.onvoiceschanged = loadVoices; setTimeout(loadVoices,800); setTimeout(loadVoices,2500); }
 function pickVoice(lang){ return voiceFor(lang).v; }
 function speakText(t){ return t.replace(/→/g," to ").replace(/[–—]/g,", ").replace(/[()]/g," , ").replace(/\s+/g," ").trim(); }
-function speak(text, lang, rateMul=1){
+function speak(text, lang, rateMul=1, absRate){
   return new Promise(res=>{
-    const est = 600 + text.length*70/(S.settings.rate||1);
-    const v = synth && pickVoice(lang);
-    if(!synth || !v){ setTimeout(res, lang==="vi"? Math.min(est,4000): est); return; }
-    synth.cancel();
-    const u = new SpeechSynthesisUtterance(speakText(text));
-    u.voice=v; u.lang=v.lang; u.rate=(S.settings.rate||1)*rateMul;
-    let done=false; const fin=()=>{ if(done) return; done=true; clearTimeout(tm); res(); };
-    u.onend=fin; u.onerror=fin; const tm=setTimeout(fin, est*2.5+4000);
-    synth.speak(u);
+    const rate = absRate || (S.settings.rate||1)*rateMul;
+    const est = 700 + text.length*75/rate;
+    if(!synth){ setTimeout(res, est); return; }
+    if(typeof Mic!=="undefined" && Mic.capturing) Mic.abort();
+    if(lang==="vi" && voices.length && !voices.some(x=>/^vi/i.test(x.lang))){ setTimeout(res, Math.min(est,4000)); return; }
+    let done=false, tries=0, watch=null, hard=null;
+    const fin=()=>{ if(done) return; done=true; clearTimeout(watch); clearTimeout(hard); res(); };
+    function attempt(useVoice){
+      tries++;
+      const v = useVoice ? pickVoice(lang) : null;
+      const u = new SpeechSynthesisUtterance(speakText(text));
+      u.lang = v ? v.lang : (lang==="en" ? "en-US" : "vi-VN");
+      if(v) u.voice = v;
+      u.rate = rate;
+      let started=false;
+      u.onstart=()=>{ started=true; clearTimeout(watch); };
+      u.onend=fin;
+      u.onerror=e=>{ if(!started && tries<2 && e.error!=="interrupted" && e.error!=="canceled"){ attempt(false); } else if(e.error!=="interrupted") fin(); else fin(); };
+      try{ synth.resume(); }catch(_){}
+      synth.speak(u);
+      clearTimeout(watch);
+      // Nếu sau 3 giây vẫn chưa phát được: thử lại bằng giọng mặc định của trình duyệt
+      watch=setTimeout(()=>{ if(!started && !done){ if(tries<2){ try{ synth.cancel(); }catch(_){} setTimeout(()=>attempt(false),150); } else fin(); } }, 3000);
+    }
+    hard=setTimeout(fin, est*2.5+7000);
+    if(synth.speaking || synth.pending){ try{ synth.cancel(); }catch(_){} setTimeout(()=>attempt(true),150); }
+    else attempt(true);
   });
 }
 function stopSpeak(){ try{ synth && synth.cancel(); }catch(e){} }
@@ -522,84 +580,50 @@ const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const ONLINE = false;
 const MIC_OK = !!SR && !ONLINE;
 const Mic = {
-  rec:null, running:false, wanted:false, blocked:false, stream:null,
-  capturing:false, capStart:0, lastLen:0, text:"", onText:null, resolveCap:null, idleTimer:null,
-  usable(){ return MIC_OK && S.settings.mic && !this.blocked; },
-  async open(){
-    if(!this.usable()) return;
-    this.wanted=true;
-    if(!this.stream && navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
-      try{ this.stream = await navigator.mediaDevices.getUserMedia({audio:true}); }
-      catch(e){ if(e && (e.name==="NotAllowedError"||e.name==="SecurityError")){ this.block(); return; } }
-    }
-    this._start();
-  },
-  _start(){
-    if(this.running || !this.wanted || this.blocked) return;
-    try{
-      const r = new SR();
-      r.lang = "en-US";
-      r.continuous = true; r.interimResults = true; r.maxAlternatives = 1;
-      r.onresult = e=>this._onResult(e);
-      r.onerror = e=>{ if(e.error==="not-allowed"||e.error==="service-not-allowed") this.block(); };
-      r.onend = ()=>{ this.running=false; this.rec=null; this.lastLen=0; this.capStart=0; if(this.wanted && !this.blocked) setTimeout(()=>this._start(),250); };
-      r.start(); this.rec=r; this.running=true;
-    }catch(e){}
-  },
-  _onResult(e){
-    this.lastLen = e.results.length;
-    if(!this.capturing) return;
-    let t="", fin=false;
-    for(let i=this.capStart;i<e.results.length;i++){ t+=e.results[i][0].transcript+" "; if(e.results[i].isFinal) fin=true; }
-    t=t.replace(/\s+/g," ").trim(); this.text=t; if(this.onText) this.onText(t);
-    clearTimeout(this.idleTimer);
-    if(t && fin) this.idleTimer=setTimeout(()=>this.endCapture(),900);
-  },
+  rec:null, capturing:false, text:"", blocked:false, skip:false, resolve:null, idle:null, maxT:null, onText:null,
+  usable(){ return MIC_OK && S.settings.mic && !this.blocked && !this.skip; },
+  open(){}, close(){ this.abort(); },
   capture(onText, maxMs){
     if(!this.usable()) return Promise.resolve(null);
-    this.wanted=true; if(!this.running) this._start();
-    this.endCapture();
-    this.capturing=true; this.capStart=this.lastLen; this.text=""; this.onText=onText;
-    micUI(true);
-    if(maxMs) this.idleTimer=setTimeout(()=>this.endCapture(), maxMs);
-    return new Promise(res=>{ this.resolveCap=res; });
+    this.abort();
+    return new Promise(res=>{
+      this.resolve=res; this.text=""; this.onText=onText; this.capturing=true;
+      let r; try{ r=new SR(); }catch(e){ this._finish(); return; }
+      r.lang="en-US"; r.continuous=true; r.interimResults=true; r.maxAlternatives=1;
+      r.onresult=e=>{
+        let t="", fin=false;
+        for(let i=0;i<e.results.length;i++){ t+=e.results[i][0].transcript+" "; if(e.results[i].isFinal) fin=true; }
+        t=t.replace(/\s+/g," ").trim(); this.text=t; if(this.onText) this.onText(t);
+        clearTimeout(this.idle); if(t) this.idle=setTimeout(()=>this.endCapture(), fin?1100:1900);
+      };
+      r.onerror=e=>{ if(e.error==="not-allowed"||e.error==="service-not-allowed") this.block(); };
+      r.onend=()=>this._finish();
+      this.rec=r;
+      try{ r.start(); }catch(e){ this._finish(); return; }
+      if(maxMs) this.maxT=setTimeout(()=>this.endCapture(), maxMs);
+    });
   },
-  endCapture(){
+  _finish(){
+    clearTimeout(this.idle); clearTimeout(this.maxT); this.rec=null;
     if(!this.capturing) return;
-    this.capturing=false; clearTimeout(this.idleTimer); micUI(false);
-    const r=this.resolveCap; this.resolveCap=null; if(r) r(this.text||null);
+    this.capturing=false; const r=this.resolve; this.resolve=null; if(r) r(this.text||null);
   },
-  close(){
-    this.wanted=false; this.endCapture();
-    try{ this.rec && this.rec.abort(); }catch(e){}
-    this.rec=null; this.running=false;
-    if(this.stream){ this.stream.getTracks().forEach(t=>t.stop()); this.stream=null; }
-  },
-  block(){
-    this.blocked=true; this.endCapture();
-    $("live").textContent="Micro chưa được cấp quyền. Bấm biểu tượng ổ khóa cạnh thanh địa chỉ → Microphone → Allow, rồi tải lại trang.";
-    updateMicBtn();
-  }
+  endCapture(){ if(!this.capturing) return; try{ this.rec && this.rec.stop(); }catch(e){} setTimeout(()=>this._finish(), 1200); },
+  abort(){ const r=this.rec; if(r){ try{ r.onend=null; r.abort(); }catch(e){} } this._finish(); },
+  block(){ this.blocked=true; MIC_PERM="denied"; }
 };
-function micUI(on){
-  $("micBtn").classList.toggle("on",on);
-  $("micBtn").setAttribute("aria-label", on? "Bấm để dừng nói" : "Bấm để nói");
-  $("live").classList.toggle("rec",on);
-  if(on) $("live").textContent="Đang nghe, bạn nói đi…";
-  else if(!Mic.text || $("live").textContent==="Đang nghe, bạn nói đi…") $("live").textContent = (run && !run.revealed) ? (Mic.text||"") : "";
+let MIC_PERM="prompt";
+(async()=>{ try{ const p=await navigator.permissions.query({name:"microphone"}); MIC_PERM=p.state; p.onchange=()=>{ MIC_PERM=p.state; if(p.state==="granted") Mic.blocked=false; }; }catch(e){} })();
+async function requestMic(){
+  try{ const st=await navigator.mediaDevices.getUserMedia({audio:true}); st.getTracks().forEach(t=>t.stop()); MIC_PERM="granted"; Mic.blocked=false; return true; }
+  catch(e){ MIC_PERM="denied"; return false; }
 }
-function updateMicBtn(){
-  const show = MIC_OK && S.settings.mic;
-  $("micBtn").classList.toggle("hidden", !show);
-  $("micBtn").disabled = Mic.blocked;
-  $("retryMic").classList.toggle("hidden", !show || Mic.blocked);
-}
-function stopListen(){ Mic.endCapture(); }
+function stopListen(){ Mic.abort(); }
+function updateMicBtn(){}
 (function initMicSetting(){
   const note=$("micNote"), box=$("mic");
-  if(ONLINE){ box.disabled=true; note.textContent="Bản online không dùng được micro vì khung của Claude chặn. Muốn chấm bằng giọng nói, hãy dùng bản tải về trên laptop."; }
-  else if(!SR){ box.disabled=true; note.textContent="Trình duyệt này không hỗ trợ nhận diện giọng nói. Hãy mở bằng Edge hoặc Chrome."; }
-  else if(location.protocol==="file:"){ note.textContent="Micro tự bật sau mỗi câu nhắc. Mẹo: mở app bằng file mo-app-phan-xa.bat để Edge nhớ quyền micro, không hỏi lại."; }
+  if(!SR){ box.disabled=true; note.textContent="Trình duyệt này không hỗ trợ nhận diện giọng nói. Hãy mở bằng Chrome, Edge hoặc Safari."; }
+  else note.textContent="Sau khi máy đọc câu nhắc và đếm ngược 3 giây, micro ghi lại câu trả lời và chấm % khớp. Từ 80% trở lên là Thuộc.";
 })();
 
 /* ---------- compare ---------- */
@@ -702,22 +726,48 @@ function buildQueue(countOnly){
 /* ---------- drill ---------- */
 let run=null, paused=false; // {token, queue, i, mode, tr, stats, wrong:Set, revealed, transcript, listening}
 let TOKEN=0;
-function show(id){ ["lock","home","drill","summary","picker","learn"].forEach(s=>$(s).classList.toggle("hidden",s!==id)); window.scrollTo(0,0); }
+function show(id){ ["lock","home","drill","summary","picker","learn","prep"].forEach(s=>$(s).classList.toggle("hidden",s!==id)); window.scrollTo(0,0); }
 
-$("startBtn").onclick=()=>{ const q=buildQueue(); S.settings.mode==="0" ? startLearn(q) : startRun(q); };
+$("startBtn").onclick=()=>{ const q=buildQueue(); const go=()=> S.settings.mode==="0" ? startLearn(q) : startRun(q); (S.settings.mode==="4") ? go() : gate(go); };
+let PREP_OK=false, PENDING=null;
+function gate(fn){
+  if(!PREP_OK && MIC_OK && S.settings.mic && !Mic.skip && MIC_PERM!=="granted"){ PENDING=fn; openPrep(); return; }
+  fn();
+}
+function openPrep(){
+  $("prepSoundSt").textContent=""; $("prepSoundSt").className="pst";
+  $("prepMicSt").className="pst";
+  $("prepMicSt").textContent = MIC_PERM==="denied" ? "Micro đang bị chặn. Trên máy tính: bấm biểu tượng ổ khóa cạnh thanh địa chỉ → Micro → Cho phép, rồi tải lại trang. Trên iPhone: Cài đặt → Safari → Micro → Cho phép." : "";
+  if(MIC_PERM==="denied") $("prepMicSt").classList.add("bad");
+  show("prep");
+}
+$("prepSound").onclick=async ()=>{
+  $("prepSoundSt").className="pst"; $("prepSoundSt").textContent="Đang phát…";
+  await speak("Hello! Let's practice English together.","en",1,1.0);
+  await speak("Xin chào, chúng ta cùng luyện tiếng Anh nhé.","vi");
+  $("prepSoundSt").textContent="Nếu không nghe thấy: tăng âm lượng, tắt chế độ im lặng (iPhone: gạt nút bên hông), hoặc thử cắm tai nghe rồi bấm lại.";
+};
+$("prepMic").onclick=async ()=>{
+  $("prepMicSt").className="pst"; $("prepMicSt").textContent="Đang chờ bạn chọn Cho phép…";
+  const ok=await requestMic();
+  $("prepMicSt").className="pst "+(ok?"ok":"bad");
+  $("prepMicSt").textContent = ok ? "✓ Đã cho phép micro." : "✗ Micro bị chặn. Trên máy tính: bấm biểu tượng ổ khóa cạnh thanh địa chỉ → Micro → Cho phép, rồi tải lại trang. Trên iPhone: Cài đặt → Safari → Micro → Cho phép.";
+};
+$("prepGo").onclick=()=>{ PREP_OK=true; const f=PENDING; PENDING=null; if(f) f(); else show("home"); };
+$("prepNoMic").onclick=()=>{ Mic.skip=true; PREP_OK=true; const f=PENDING; PENDING=null; if(f) f(); else show("home"); };
+$("prepBack").onclick=()=>{ PENDING=null; show("home"); };
 function startRun(queue, modeOverride){
   if(!queue.length) return;
   stopSpeak(); stopListen();
   const mode=modeOverride||S.settings.mode;
-  run={token:++TOKEN, queue:[...queue], total:queue.length, i:0, mode, tr:track(mode), stats:{1:0,2:0,3:0}, wrong:new Set(), done:0};
+  run={token:++TOKEN, queue:[...queue], total:queue.length, i:0, mode, tr:track(mode), stats:{1:0,3:0}, wrong:new Set(), done:0};
   show("drill");
   const hf = mode==="4";
   $("preActs").classList.toggle("hidden",hf); $("hfActs").classList.toggle("hidden",!hf); $("post").classList.add("hidden");
   $("showHint").classList.toggle("hidden", mode!=="2");
-  $("grades").classList.remove("hidden"); $("replayA").classList.remove("hidden");
-  updateMicBtn();
-  if(hf){ $("micBtn").classList.add("hidden"); requestWake(); handsFree(run.token); }
-  else { Mic.open(); nextCard(); }
+  $("grades").classList.remove("hidden"); $("audRow").classList.remove("hidden");
+  if(hf){ requestWake(); handsFree(run.token); }
+  else nextCard();
 }
 function cur(){ return BYID[run.queue[run.i]]; }
 function setProgress(){ $("count").textContent = `${Math.min(run.done+1,run.total)} / ${run.total}`; $("pfill").style.width = (run.done/run.total*100)+"%"; }
@@ -759,76 +809,85 @@ function countdown(sec, token){
 }
 function resetRing(){ $("ringFg").style.strokeDashoffset=0; $("ringTxt").textContent=S.settings.wait; }
 
+function setPhase(label, rec){ $("phase").textContent=label||""; $("ring").classList.toggle("rec",!!rec); $("live").classList.toggle("rec",!!rec); }
 async function nextCard(){
   if(run.i>=run.queue.length){ finish(); return; }
   const token = run.token, d=cur(), mode=run.mode;
-  run.revealed=false; run.transcript=null;
+  const stale = ()=> !run || run.token!==token || run.revealed || run.queue[run.i]!==d.id;
+  run.revealed=false; run.transcript=null; run.verdict=null;
   if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
   setProgress();
-  $("post").classList.add("hidden"); $("preActs").classList.remove("hidden");
-  $("live").textContent=""; $("live").classList.remove("rec"); resetRing();
+  $("post").classList.add("hidden"); $("preActs").classList.remove("hidden"); $("replayQ").disabled=false;
+  $("live").textContent=""; resetRing(); setPhase(mode==="3"?"Nghe câu hỏi…":"Nghe câu tiếng Việt…");
   renderPrompt(d, mode, mode==="1");
   await speak(mode==="3"? d.q : d.vn, mode==="3"?"en":"vi");
-  if((!run||run.token!==token) || run.revealed || run.queue[run.i]!==d.id) return;
-  await answerPhase(token, d);
-}
-async function answerPhase(token, d){
-  const cd = countdown(S.settings.wait, token);
-  let text=null;
+  if(stale()) return;
   if(Mic.usable()){
-    const cap = Mic.capture(t=>{ $("live").textContent=t; });
-    const first = await Promise.race([cd.then(()=>"time"), cap.then(t=>{ text=t; return "cap"; })]);
-    if(first==="time"){ text = Mic.text||null; Mic.endCapture(); }
-    else if(!text) await cd;
+    setPhase("Chuẩn bị…");
+    await countdown(3, token);
+    if(stale()) return;
+    $("replayQ").disabled=true;
+    setPhase("Mời bạn nói", true); $("live").textContent="Đang ghi âm…";
+    const cd = countdown(S.settings.wait, token);
+    const text = await Mic.capture(t=>{ if(!stale()) $("live").textContent=t; }, S.settings.wait*1000+300);
     if(countdownStop) countdownStop();
-  } else await cd;
-  if((!run||run.token!==token) || run.revealed || run.queue[run.i]!==d.id) return;
-  run.transcript = text; reveal();
+    if(stale()) return;
+    run.transcript=text; reveal();
+  } else {
+    setPhase("Nói to câu trả lời của bạn");
+    await countdown(S.settings.wait, token);
+    if(stale()) return;
+    reveal();
+  }
 }
+function paintWords(d, c){ $("ansEn").innerHTML = c.words.map((w,i)=>`<span class="w ${c.wordHit[i]?"hit":"miss"}">${esc(w)}</span>`).join(" "); }
 function reveal(){
   if(!run || run.revealed) return;
-  const heardSoFar = Mic.capturing ? (Mic.text||null) : null;
-  run.revealed=true; Mic.endCapture(); if(countdownStop) countdownStop();
-  if(!run.transcript && heardSoFar) run.transcript = heardSoFar;
+  if(Mic.capturing){ const t=Mic.text; Mic.abort(); if(!run.transcript && t) run.transcript=t; }
+  run.revealed=true; if(countdownStop) countdownStop();
   const d=cur();
-  $("live").classList.remove("rec");
+  setPhase(""); $("live").textContent="";
   $("preActs").classList.add("hidden"); $("post").classList.remove("hidden");
-  $("ansIpa").textContent=d.ipa; $("ansVn").textContent = run.mode==="3" ? d.vn : "";
-  $("ansVn").classList.toggle("hidden", run.mode!=="3");
+  $("ansIpa").textContent=d.ipa; $("ansVn").textContent = run.mode==="3" ? d.vn : ""; $("ansVn").classList.toggle("hidden", run.mode!=="3");
   $("ansMeta").textContent = !RANGE[d.u] ? `Unit ${d.u}: ${d.s}` : `Unit ${d.u}, câu ${RIDX[d.id]}`;
-  document.querySelectorAll("#grades button").forEach(b=>b.classList.remove("sugg"));
-  renderCompare(d, run.transcript);
-  speak(d.en,"en");
-  $("post").scrollIntoView({behavior:"smooth",block:"nearest"});
-}
-function renderCompare(d, said){
-  document.querySelectorAll("#grades button").forEach(b=>b.classList.remove("sugg"));
+  $("retryRes").textContent=""; $("audRow").classList.remove("hidden");
+  $("retryMic").classList.toggle("hidden", !Mic.usable()); $("retryMic").textContent="🎤 Đọc lại"; $("retryMic").classList.remove("on");
+  $("gBad").classList.remove("sugg"); $("gOk").classList.remove("sugg");
+  const said = run.transcript;
   if(said){
-    const c=compare(d.en, said);
-    $("ansEn").innerHTML = c.words.map((w,i)=>`<span class="w ${c.wordHit[i]?"hit":"miss"}">${esc(w)}</span>`).join(" ");
-    $("said").innerHTML = `Bạn nói: <b>${esc(said)}</b> (khớp ${Math.round(c.score*100)}%)`; $("said").classList.remove("hidden");
-    const g = c.score>=0.9?3:c.score>=0.6?2:1; document.querySelector(`#grades [data-g="${g}"]`).classList.add("sugg");
+    const c=compare(d.en, said), pct=Math.round(c.score*100);
+    run.verdict = c.score>=0.8 ? 3 : 1;
+    paintWords(d,c);
+    $("said").innerHTML = `Bạn nói: <b>${esc(said)}</b>`; $("said").classList.remove("hidden");
+    $("verdict").className = "verdict "+(run.verdict===3?"ok":"bad");
+    $("verdict").textContent = `Khớp ${pct}%: ${run.verdict===3?"Thuộc":"Học lại"}`;
+    $("nextRow").classList.remove("hidden"); $("selfRow").classList.add("hidden");
   } else {
-    $("ansEn").textContent=d.en;
-    if(Mic.usable()){ $("said").textContent="Máy chưa nghe được gì. Bấm 🎤 để nói lại, hoặc tự chấm."; $("said").classList.remove("hidden"); }
-    else $("said").classList.add("hidden");
+    run.verdict=null;
+    $("ansEn").textContent=d.en; $("verdict").classList.add("hidden");
+    $("said").textContent = Mic.usable() ? "Máy chưa nghe được giọng của bạn. Bấm 🎤 Đọc lại để thử, hoặc tự đánh giá." : "";
+    $("said").classList.toggle("hidden", !Mic.usable());
+    $("nextRow").classList.add("hidden"); $("selfRow").classList.remove("hidden");
   }
+  speak(d.en,"en",1,1.0);
+  $("post").scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 async function retrySpeak(){
   if(!run || !run.revealed || !Mic.usable()) return;
+  const btn=$("retryMic");
   if(Mic.capturing){ Mic.endCapture(); return; }
   stopSpeak(); const d=cur(), token=run.token;
-  $("said").textContent="Đang nghe, bạn nói lại câu trên…"; $("said").classList.remove("hidden");
-  const t = await Mic.capture(x=>{ $("said").textContent="Đang nghe: "+x; }, 10000);
+  await new Promise(r=>setTimeout(r,200));
+  btn.classList.add("on"); btn.textContent="■ Dừng";
+  $("retryRes").textContent="Đang nghe, bạn đọc lại câu trên…";
+  const t = await Mic.capture(x=>{ $("retryRes").textContent="Đang nghe: "+x; }, 10000);
+  btn.classList.remove("on"); btn.textContent="🎤 Đọc lại";
   if(!run || run.token!==token || cur()!==d) return;
-  run.transcript = t || run.transcript;
-  renderCompare(d, t);
-}
-function micPress(){
-  if(!run || run.mode==="4" || !Mic.usable()) return;
-  if(run.revealed){ retrySpeak(); return; }
-  if(Mic.capturing){ Mic.endCapture(); return; }
-  stopSpeak();   // đang đọc câu nhắc: dừng đọc để nói ngay
+  if(t){
+    const c=compare(d.en,t), pct=Math.round(c.score*100); paintWords(d,c);
+    $("retryRes").innerHTML = `Lần đọc lại: bạn nói "<b>${esc(t)}</b>", khớp <b>${pct}%</b>. ${pct>=80?"Tốt lắm!":"Nghe lại mẫu rồi thử lần nữa nhé."}`;
+    if(run.verdict===null){ $("gBad").classList.toggle("sugg",pct<80); $("gOk").classList.toggle("sugg",pct>=80); }
+  } else $("retryRes").textContent="Máy chưa nghe được. Bấm 🎤 Đọc lại để thử lần nữa.";
 }
 function grade(g){
   if(!run || !run.revealed) return;
@@ -836,20 +895,21 @@ function grade(g){
   const p = S.prog[k] || {b:0,d:0,n:0,w:0,t:0};
   p.n++; p.t=now;
   if(g===1){ p.b=0; p.d=now; p.w++; run.wrong.add(d.id); run.queue.splice(Math.min(run.i+4,run.queue.length),0,d.id); }
-  else if(g===2){ p.b=Math.max(1,p.b); p.d=now+DAY; }
   else { p.b=Math.min(p.b+1,IV.length-1); p.d=now+IV[p.b]*DAY; }
   S.prog[k]=p; save();
   run.seen = run.seen || new Set();
-  if(!run.seen.has(d.id)){ run.seen.add(d.id); run.stats[g]++; run.done++; }
-  Mic.endCapture(); stopSpeak(); run.i++; nextCard();
+  if(!run.seen.has(d.id)){ run.seen.add(d.id); run.stats[g===1?1:3]++; run.done++; }
+  Mic.abort(); stopSpeak(); run.i++; nextCard();
 }
 $("reveal").onclick=reveal;
-$("replayQ").onclick=()=>{ const d=cur(); speak(run.mode==="3"?d.q:d.vn, run.mode==="3"?"en":"vi"); };
-$("replayA").onclick=()=>{ Mic.endCapture(); speak(cur().en,"en"); };
-$("micBtn").onclick=micPress;
+$("replayQ").onclick=()=>{ if(!run||run.revealed||Mic.capturing) return; const d=cur(); speak(run.mode==="3"?d.q:d.vn, run.mode==="3"?"en":"vi"); };
+$("playN").onclick=()=>{ Mic.abort(); speak(cur().en,"en",1,1.0); };
+$("playS").onclick=()=>{ Mic.abort(); speak(cur().en,"en",1,0.6); };
 $("retryMic").onclick=retrySpeak;
 $("showHint").onclick=()=>renderPrompt(cur(), run.mode, true);
-$("grades").addEventListener("click",e=>{ const b=e.target.closest("button"); if(b) grade(+b.dataset.g); });
+$("nextBtn").onclick=()=>{ if(run && run.verdict) grade(run.verdict); };
+$("gBad").onclick=()=>grade(1);
+$("gOk").onclick=()=>grade(3);
 $("quit").onclick=()=>{ stopAll(); if(run && run.mode!=="4" && run.done>0) finish(); else { run=null; renderHome(); show("home"); } };
 function stopAll(){ TOKEN++; if(L){ L.token=-2; L.listTok++; } stopSpeak(); Mic.close(); if(countdownStop) countdownStop(); releaseWake(); }
 
@@ -860,10 +920,12 @@ document.addEventListener("keydown",e=>{
   }
   if($("drill").classList.contains("hidden") || !run || run.mode==="4") return;
   if(["INPUT","SELECT","TEXTAREA"].includes(document.activeElement.tagName)) return;
-  if(e.code==="Space"||e.key==="Enter"){ if(!run.revealed){ e.preventDefault(); reveal(); } }
-  else if(["1","2","3"].includes(e.key)) grade(+e.key);
-  else if(e.key==="m"||e.key==="M"){ micPress(); }
-  else if(e.key==="r"||e.key==="R"){ run.revealed ? speak(cur().en,"en") : $("replayQ").click(); }
+  if(e.code==="Space"||e.key==="Enter"){ e.preventDefault(); if(!run.revealed) reveal(); else if(run.verdict) grade(run.verdict); }
+  else if(e.key==="1" && run.revealed && run.verdict===null) grade(1);
+  else if(e.key==="2" && run.revealed && run.verdict===null) grade(3);
+  else if((e.key==="r"||e.key==="R") && run.revealed) $("playN").click();
+  else if((e.key==="s"||e.key==="S") && run.revealed) $("playS").click();
+  else if((e.key==="m"||e.key==="M") && run.revealed) retrySpeak();
 });
 
 /* ---------- hands-free ---------- */
@@ -877,14 +939,14 @@ async function handsFree(token){
   const useQ = S.settings.hfPrompt==="q"; const mode = useQ?"3":"1";
   while(run && run.token===token && run.i<run.queue.length){
     skip=false; const d=cur(); setProgress();
-    $("post").classList.add("hidden"); $("live").textContent=""; resetRing();
+    $("post").classList.add("hidden"); $("live").textContent=""; resetRing(); setPhase("");
     renderPrompt(d, mode, false);
     await waitUnpaused(token); if((!run||run.token!==token)) return;
     if(!skip) await speak(useQ?d.q:d.vn, useQ?"en":"vi");
     if((!run||run.token!==token)) return;
     if(!skip){ await waitUnpaused(token); await countdown(S.settings.wait, token); }
     if((!run||run.token!==token)) return;
-    $("post").classList.remove("hidden"); $("grades").classList.add("hidden"); $("replayA").classList.add("hidden");
+    $("post").classList.remove("hidden"); $("grades").classList.add("hidden"); $("audRow").classList.add("hidden"); $("verdict").classList.add("hidden"); $("retryRes").textContent="";
     $("ansEn").textContent=d.en; $("ansIpa").textContent=d.ipa; $("ansVn").textContent=d.vn; $("ansVn").classList.remove("hidden"); $("said").classList.add("hidden");
     $("ansMeta").textContent = !RANGE[d.u] ? `Unit ${d.u}: ${d.s}` : `Unit ${d.u}, câu ${RIDX[d.id]}`;
     const reps = +S.settings.hfRepeat;
@@ -893,11 +955,11 @@ async function handsFree(token){
     if((!run||run.token!==token)) return;
     run.i++; run.done++;
   }
-  if(run && run.token===token){ releaseWake(); $("grades").classList.remove("hidden"); $("replayA").classList.remove("hidden"); finish(true); }
+  if(run && run.token===token){ releaseWake(); $("grades").classList.remove("hidden"); $("audRow").classList.remove("hidden"); finish(true); }
 }
 $("hfPause").onclick=()=>{ paused=!paused; $("hfPause").textContent= paused?"Tiếp tục":"Tạm dừng"; if(paused) stopSpeak(); };
 $("hfSkip").onclick=()=>{ skip=true; stopSpeak(); if(countdownStop) countdownStop(); };
-$("hfStop").onclick=()=>{ stopAll(); $("grades").classList.remove("hidden"); $("replayA").classList.remove("hidden"); run=null; renderHome(); show("home"); };
+$("hfStop").onclick=()=>{ stopAll(); $("grades").classList.remove("hidden"); $("audRow").classList.remove("hidden"); run=null; renderHome(); show("home"); };
 
 /* ---------- picker ---------- */
 let pickU=null; const openG=new Set();
@@ -950,7 +1012,7 @@ function startLearn(ids){
   if(!ids.length) return;
   stopAll();
   L={token:++TOKEN, ids:[...ids], i:0, paused:false, jump:false, listTok:0};
-  show("learn"); updateMicBtn();
+  show("learn");
   renderLearnList(); setLearnView(S.settings.learnView||"card", true);
   Mic.open();
   learnLoop(L.token);
@@ -1010,6 +1072,9 @@ async function learnLoop(tk){
   if(!lStale(tk)) learnDone();
 }
 function lJump(i){ if(!L) return; if(i>=L.ids.length){ learnDone(); return; } L.i=Math.max(0,i); L.jump=true; stopSpeak(); Mic.endCapture(); if(L.paused){ L.paused=false; $("lPause").textContent="Tạm dừng"; } }
+function lHold(){ if(!L) return; L.paused=true; $("lPause").textContent="Tiếp tục"; Mic.abort(); lMsg("Đang tạm dừng. Bấm Tiếp tục để luyện tiếp."); }
+$("lPlayN").onclick=()=>{ if(!L) return; lHold(); speak(BYID[L.ids[L.i]].en,"en",1,1.0); };
+$("lPlayS").onclick=()=>{ if(!L) return; lHold(); speak(BYID[L.ids[L.i]].en,"en",1,0.6); };
 $("lPrev").onclick=()=>lJump(L.i-1);
 $("lNext").onclick=()=>lJump(L.i+1);
 $("lPause").onclick=()=>{ if(!L) return; L.paused=!L.paused; $("lPause").textContent=L.paused?"Tiếp tục":"Tạm dừng"; if(L.paused){ stopSpeak(); Mic.endCapture(); lMsg("Đang tạm dừng"); } };
@@ -1019,13 +1084,14 @@ function renderLearnList(){
   let h="", last="";
   L.ids.forEach(id=>{ const d=BYID[id]; const g=(GROUPS[d.u].find(g=>g.ids.includes(id))||{}); const key=d.u+"|"+d.s;
     if(key!==last){ h+=`<div class="lgh">${!RANGE[d.u]?`Unit ${d.u}, ${g.label}: ${esc(d.s)}`:`Unit ${d.u}, ${d.s}`}</div>`; last=key; }
-    h+=`<div class="litem" data-id="${id}"><div class="txt"><b>${esc(d.en)}</b><div class="i">${esc(d.ipa)}</div><div class="v">${esc(d.vn)}</div><div class="r"></div></div><button class="ib" data-say="${id}" aria-label="Nghe câu này">🔊</button>${MIC_OK&&S.settings.mic?`<button class="ib" data-rec="${id}" aria-label="Nói thử câu này">🎤</button>`:""}</div>`;
+    h+=`<div class="litem" data-id="${id}"><div class="txt"><b>${esc(d.en)}</b><div class="i">${esc(d.ipa)}</div><div class="v">${esc(d.vn)}</div><div class="r"></div></div><button class="ib" data-say="${id}" aria-label="Nghe câu này">🔊</button><button class="ib" data-slow="${id}" aria-label="Nghe chậm">🐢</button>${Mic.usable()?`<button class="ib" data-rec="${id}" aria-label="Nói thử câu này">🎤</button>`:""}</div>`;
   });
   $("lList").innerHTML=h;
 }
 function markListCur(id){ id = id || (L && L.ids[L.i]); document.querySelectorAll("#lList .litem").forEach(x=>x.classList.toggle("cur",x.dataset.id===id)); }
 $("lList").addEventListener("click",async e=>{
-  const s1=e.target.closest("[data-say]"); if(s1){ L.listTok++; Mic.endCapture(); markListCur(s1.dataset.say); speak(BYID[s1.dataset.say].en,"en"); return; }
+  const sl=e.target.closest("[data-slow]"); if(sl){ L.listTok++; Mic.abort(); markListCur(sl.dataset.slow); speak(BYID[sl.dataset.slow].en,"en",1,0.6); return; }
+  const s1=e.target.closest("[data-say]"); if(s1){ L.listTok++; Mic.endCapture(); markListCur(s1.dataset.say); speak(BYID[s1.dataset.say].en,"en",1,1.0); return; }
   const r1=e.target.closest("[data-rec]"); if(r1){
     const id=r1.dataset.rec, row=r1.closest(".litem"), out=row.querySelector(".r");
     if(Mic.capturing){ Mic.endCapture(); return; }
@@ -1060,18 +1126,18 @@ function learnDone(){
 function finish(hf){
   stopAll();
   const r=run; show("summary");
-  $("grades").classList.remove("hidden"); $("replayA").classList.remove("hidden");
+  $("grades").classList.remove("hidden"); $("audRow").classList.remove("hidden");
   if(hf){
     $("sumTitle").textContent="Xong lượt nghe"; $("sumSub").textContent=`Đã nghe ${r.total} câu. Chuyển sang chế độ có chấm điểm để kiểm tra độ thuộc.`;
     $("sumStats").innerHTML=""; $("againWrong").classList.add("hidden"); $("wrongHead").classList.add("hidden"); $("wrongList").innerHTML="";
   } else {
     $("sumTitle").textContent="Xong lượt luyện: "+MODE_NAME[r.mode];
-    $("sumSub").textContent=`Bạn đã luyện ${r.done} câu. Câu sai sẽ được đưa lại vào lượt sau.`;
-    $("sumStats").innerHTML=`<div class="stat"><strong style="color:var(--ok)">${r.stats[3]}</strong><span>Đúng</span></div><div class="stat"><strong style="color:var(--mid)">${r.stats[2]}</strong><span>Gần đúng</span></div><div class="stat"><strong style="color:var(--bad)">${r.stats[1]}</strong><span>Sai</span></div>`;
+    $("sumSub").textContent=`Bạn đã luyện ${r.done} câu. Câu cần học lại sẽ được đưa vào lượt sau.`;
+    $("sumStats").innerHTML=`<div class="stat"><strong style="color:var(--ok)">${r.stats[3]}</strong><span>Thuộc</span></div><div class="stat"><strong style="color:var(--bad)">${r.stats[1]}</strong><span>Học lại</span></div>`;
     const w=[...r.wrong];
     $("againWrong").classList.toggle("hidden",!w.length); $("wrongHead").classList.toggle("hidden",!w.length);
     $("wrongList").innerHTML = w.map(id=>{const d=BYID[id]; return `<div class="item"><p><b>${esc(d.en)}</b></p><p>${esc(d.vn)}</p></div>`;}).join("");
-    $("againWrong").onclick=()=>startRun(w);
+    $("againWrong").onclick=()=>startRun(w, r.mode);
   }
   run=null; renderHome();
 }
